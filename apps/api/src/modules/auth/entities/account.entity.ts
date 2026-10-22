@@ -1,5 +1,12 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
-import { User } from './User';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from 'typeorm';
+import { User } from './user.entity';
 
 @Entity('account')
 export class Account {
@@ -41,10 +48,12 @@ export class Account {
   @Column('text', { name: 'password', nullable: true })
   password: string | null;
 
-  @Column('timestamptz', { name: 'createdAt', default: () => 'CURRENT_TIMESTAMP' })
+  @Column('timestamptz', {
+    name: 'createdAt',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt!: Date;
 
   @Column('timestamptz', { name: 'updatedAt' })
   updatedAt!: Date;
-
 }

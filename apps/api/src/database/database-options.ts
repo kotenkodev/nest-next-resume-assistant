@@ -19,7 +19,12 @@ export function getDatabaseOptions(): DataSourceOptions {
   return {
     type: 'postgres',
     url,
-    entities: [join(directory, 'entities', '*.js').replace(/\\/g, '/')],
+    entities: [
+      join(directory, '../modules/**/entities/*.entity.{js,ts}').replace(
+        /\\/g,
+        '/',
+      ),
+    ],
     migrations: [join(directory, 'migrations', '*.js').replace(/\\/g, '/')],
     synchronize: false,
     migrationsRun: false,

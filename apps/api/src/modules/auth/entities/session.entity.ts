@@ -1,5 +1,12 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
-import { User } from './User';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from 'typeorm';
+import { User } from './user.entity';
 
 @Entity('session')
 export class Session {
@@ -12,7 +19,10 @@ export class Session {
   @Column('text', { name: 'token', unique: true })
   token!: string;
 
-  @Column('timestamptz', { name: 'createdAt', default: () => 'CURRENT_TIMESTAMP' })
+  @Column('timestamptz', {
+    name: 'createdAt',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt!: Date;
 
   @Column('timestamptz', { name: 'updatedAt' })
@@ -31,5 +41,4 @@ export class Session {
   @ManyToOne(() => User, { onDelete: 'CASCADE', nullable: false })
   @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
   user!: User;
-
 }
