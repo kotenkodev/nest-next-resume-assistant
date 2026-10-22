@@ -2,7 +2,9 @@ import 'reflect-metadata';
 import { existsSync } from 'node:fs';
 import { loadEnvFile } from 'node:process';
 import { NestFactory } from '@nestjs/core';
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common/pipes/validation.pipe';
 
 async function bootstrap() {
   if (existsSync('.env')) loadEnvFile('.env');
@@ -11,10 +13,19 @@ async function bootstrap() {
     bodyParser: false,
   });
 
+  const configService = app.get(ConfigService);
+
   app.setGlobalPrefix('api');
 
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  );
+
   const webOrigin =
-    process.env.WEB_ORIGIN ?? 'http://localhost:3000';
+    configService.get<string>('WEB_ORIGIN') ?? 'http://localhost:3000';
 
   app.enableCors({
     origin: webOrigin,
@@ -23,7 +34,7 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
 
-  const port = Number(process.env.PORT ?? 3001);
+  const port = configService.get<number>('PORT') ?? 3001;
   await app.listen(port);
 }
 

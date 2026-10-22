@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -6,9 +7,14 @@ import { getDatabaseOptions } from './database/database-options';
 import { createAuth } from './modules/auth/auth';
 import { AuthModule } from '@thallesp/nestjs-better-auth';
 import { DataSource } from 'typeorm';
+import { validateEnv } from './config/env.validate';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validate: validateEnv,
+    }),
     TypeOrmModule.forRootAsync({
       useFactory: () => getDatabaseOptions(),
     }),
