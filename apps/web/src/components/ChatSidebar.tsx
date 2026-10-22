@@ -9,6 +9,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { GalleryVerticalEnd, User2Icon } from 'lucide-react';
+import { UserMenu } from './UserMenu';
 
 export function ChatSidebar({
   ...props
@@ -43,7 +44,7 @@ export function ChatSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton>
-              <User2Icon /> Username
+              <UserMenu />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
