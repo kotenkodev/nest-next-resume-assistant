@@ -11,8 +11,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="dark">
-      <body>{children}</body>
+    <html lang="en">
+      <body className="h-dvh w-screen overflow-hidden  flex flex-col">
+        {children}
+      </body>
     </html>
   );
 }
