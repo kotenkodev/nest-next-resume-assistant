@@ -7,11 +7,24 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   if (existsSync('.env')) loadEnvFile('.env');
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: false,
+  });
+
   app.setGlobalPrefix('api');
-  app.enableCors({ origin: process.env.WEB_ORIGIN ?? 'http://localhost:3000' });
+
+  const webOrigin =
+    process.env.WEB_ORIGIN ?? 'http://localhost:3000';
+
+  app.enableCors({
+    origin: webOrigin,
+    credentials: true,
+  });
+
   app.enableShutdownHooks();
-  await app.listen(Number(process.env.PORT ?? 3001));
+
+  const port = Number(process.env.PORT ?? 3001);
+  await app.listen(port);
 }
 
 bootstrap().catch((error: unknown) => {
