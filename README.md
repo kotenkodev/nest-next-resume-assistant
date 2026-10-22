@@ -23,7 +23,7 @@ pnpm install
 pnpm dev
 ```
 
-The API works with defaults. To customize its port or allowed browser origin, copy `apps/api/.env.example` to `apps/api/.env` and edit it. Restart development after changing environment variables.
+The API reads `.env` from the repository root. Copy `.env.example` to `.env`, configure the database URL and auth secret, and adjust the port or browser origin as needed. Restart development after changing environment variables.
 
 ## Commands
 

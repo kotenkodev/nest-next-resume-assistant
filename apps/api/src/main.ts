@@ -1,14 +1,10 @@
 import 'reflect-metadata';
-import { existsSync } from 'node:fs';
-import { loadEnvFile } from 'node:process';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common/pipes/validation.pipe';
 
 async function bootstrap() {
-  if (existsSync('.env')) loadEnvFile('.env');
-
   const app = await NestFactory.create(AppModule, {
     bodyParser: false,
   });

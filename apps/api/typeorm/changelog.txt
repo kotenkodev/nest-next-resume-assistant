@@ -1,0 +1,14 @@
+# TypeORM Schema Changes - 2026-10-21T15:02:06.757Z
+
+- CREATE Migration: migrations/1792594926756-create-user.ts
+- Entity: entities/User.ts
+
+- CREATE Migration: migrations/1792594926756-create-session.ts
+- Entity: entities/Session.ts
+
+- CREATE Migration: migrations/1792594926756-create-account.ts
+- Entity: entities/Account.ts
+
+- CREATE Migration: migrations/1792594926756-create-verification.ts
+- Entity: entities/Verification.ts
+
