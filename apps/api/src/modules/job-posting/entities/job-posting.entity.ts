@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
+import type { DocumentStatus } from '../../storage/document-status';
 
 export interface ParsedJobRequirements {
   role: string;
@@ -30,14 +31,29 @@ export class JobPosting {
   @JoinColumn({ name: 'userId' })
   user!: User;
 
-  @Column('text')
-  title!: string;
+  @Column('text', { nullable: true })
+  title!: string | null;
 
   @Column('text', { nullable: true })
   company?: string;
 
   @Column('text')
-  rawText!: string;
+  fileName!: string;
+
+  @Column('int')
+  fileSize!: number;
+
+  @Column('text', { unique: true })
+  s3Key!: string;
+
+  @Column('text')
+  contentType!: string;
+
+  @Column('text', { default: 'PENDING_UPLOAD' })
+  status!: DocumentStatus;
+
+  @Column('text', { nullable: true })
+  rawText!: string | null;
 
   @Column('jsonb', { nullable: true })
   parsedData?: ParsedJobRequirements;
@@ -51,3 +67,4 @@ export class JobPosting {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 }
+

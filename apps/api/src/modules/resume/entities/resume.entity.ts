@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
+import type { DocumentStatus } from '../../storage/document-status';
 
 export interface ParsedProfile {
   name?: string;
@@ -52,11 +53,20 @@ export class Resume {
   @Column('text')
   fileName!: string;
 
-  @Column('int', { nullable: true })
-  fileSize?: number;
+  @Column('int')
+  fileSize!: number;
+
+  @Column('text', { unique: true })
+  s3Key!: string;
 
   @Column('text')
-  rawText!: string;
+  contentType!: string;
+
+  @Column('text', { default: 'PENDING_UPLOAD' })
+  status!: DocumentStatus;
+
+  @Column('text', { nullable: true })
+  rawText!: string | null;
 
   @Column('jsonb', { nullable: true })
   parsedProfile?: ParsedProfile;
