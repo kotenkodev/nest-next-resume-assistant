@@ -35,3 +35,4 @@ export class ChatMessage {
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 }
+

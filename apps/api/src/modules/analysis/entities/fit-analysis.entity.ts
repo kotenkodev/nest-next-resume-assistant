@@ -86,3 +86,4 @@ export class FitAnalysis {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 }
+

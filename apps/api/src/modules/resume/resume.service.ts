@@ -14,6 +14,18 @@ export class ResumeService {
     private readonly s3Service: S3Service,
   ) {}
 
+  getResumes(userId: string): Promise<Resume[]> {
+    return this.resumeRepository.find({ where: { userId } });
+  }
+
+  getResume(userId: string, id: string): Promise<Resume | null> {
+    return this.resumeRepository.findOne({ where: { userId, id } });
+  }
+
+  deleteResume(userId: string, id: string): Promise<void> {
+    return this.resumeRepository.delete({ userId, id }).then(() => {});
+  }
+
   async initiateUpload(
     userId: string,
     dto: FileUploadDto,
