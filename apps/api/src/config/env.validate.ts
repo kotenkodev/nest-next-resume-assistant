@@ -74,6 +74,18 @@ export class EnvValidation {
   @IsOptional()
   @IsString()
   S3_BUCKET?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  AI_API_KEY!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  AI_API_URL!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  AI_MODEL!: string;
 }
 
 export function validateEnv(env: Record<string, unknown>): EnvValidation {

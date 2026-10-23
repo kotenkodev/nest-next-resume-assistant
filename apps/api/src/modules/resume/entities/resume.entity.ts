@@ -9,31 +9,7 @@ import {
 } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 import type { DocumentStatus } from '../../storage/document-status';
-
-export interface ParsedProfile {
-  name?: string;
-  email?: string;
-  phone?: string;
-  summary?: string;
-  skills: {
-    languages: string[];
-    frameworks: string[];
-    tools: string[];
-    softSkills: string[];
-  };
-  experience: Array<{
-    title: string;
-    company: string;
-    startDate?: string;
-    endDate?: string;
-    highlights: string[];
-  }>;
-  education: Array<{
-    institution: string;
-    degree: string;
-    year?: string;
-  }>;
-}
+import type { ParsedProfile } from '../schemas/parsed-profile.schema';
 
 @Entity('resume')
 export class Resume {
