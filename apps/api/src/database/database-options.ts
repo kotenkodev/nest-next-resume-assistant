@@ -1,11 +1,13 @@
 import { existsSync } from 'node:fs';
 import { loadEnvFile } from 'node:process';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import type { DataSourceOptions } from 'typeorm';
 
 export function getDatabaseOptions(): DataSourceOptions {
-  if (existsSync('.env')) {
-    loadEnvFile('.env');
+  const envPath = resolve(__dirname, '../../../../.env');
+
+  if (existsSync(envPath)) {
+    loadEnvFile(envPath);
   }
 
   const url = process.env.DATABASE_URL;

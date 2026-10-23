@@ -10,6 +10,8 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
+    "migration:generate": "pnpm --filter @repo/api build && pnpm --filter @repo/api exec typeorm migration:generate -d dist/database/data-source.js",
+    "migration:run": "pnpm --filter @repo/api build && pnpm --filter @repo/api exec typeorm migration:run -d dist/database/data-source.js",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
