@@ -86,6 +86,14 @@ export class EnvValidation {
   @IsString()
   @IsNotEmpty()
   AI_MODEL!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  GEMINI_API_KEY!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  EMBEDDING_MODEL!: string;
 }
 
 export function validateEnv(env: Record<string, unknown>): EnvValidation {
