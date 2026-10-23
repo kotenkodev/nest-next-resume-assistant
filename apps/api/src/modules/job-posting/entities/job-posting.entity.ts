@@ -9,15 +9,7 @@ import {
 } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 import type { DocumentStatus } from '../../storage/document-status';
-
-export interface ParsedJobRequirements {
-  role: string;
-  level?: string;
-  requiredSkills: string[];
-  preferredSkills: string[];
-  responsibilities: string[];
-  experienceYears?: number;
-}
+import type { ParsedJobRequirements } from '../schemas/parsed-job-requirements.schema';
 
 @Entity('job_posting')
 export class JobPosting {
@@ -67,4 +59,3 @@ export class JobPosting {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 }
-
