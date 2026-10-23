@@ -1,10 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { JobPosting } from './entities/job-posting.entity';
-import { InjectRepository } from '@nestjs/typeorm/dist/common/typeorm.decorators';
-import { Repository } from 'typeorm/repository/Repository';
 import { S3Service } from '../storage/s3.service';
 import { FileUploadDto } from '../storage/dto/file-upload.dto';
 import { randomUUID } from 'crypto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { S3ServiceException } from '@aws-sdk/client-s3';
+import { Repository } from 'typeorm';
+import { ProcessingJob } from '../pipeline/entities/processing-job.entity';
 
 @Injectable()
 export class JobPostingService {
@@ -53,5 +60,92 @@ export class JobPostingService {
     await this.jobPostingRepository.save(jobPosting);
 
     return { id: jobPosting.id, uploadUrl };
+  }
+
+  async verifyUpload(userId: string, id: string): Promise<JobPosting> {
+    const jobPosting = await this.jobPostingRepository.findOne({
+      where: { id, userId },
+    });
+
+    if (!jobPosting) {
+      throw new NotFoundException('Job posting not found');
+    }
+
+    const metadata = await this.s3Service
+      .getObjectMetadata(jobPosting.s3Key)
+      .catch((error: unknown) => {
+        if (
+          error instanceof S3ServiceException &&
+          error.$metadata.httpStatusCode === 404
+        ) {
+          throw new BadRequestException('File has not been uploaded yet');
+        }
+
+        throw error;
+      });
+
+    if (metadata.ContentLength !== jobPosting.fileSize) {
+      throw new BadRequestException('Uploaded file size does not match');
+    }
+
+    if (metadata.ContentType !== jobPosting.contentType) {
+      throw new BadRequestException(
+        'Uploaded file content type does not match',
+      );
+    }
+
+    return jobPosting;
+  }
+
+  async completeUpload(
+    userId: string,
+    id: string,
+  ): Promise<{ id: string; processingJobId: string }> {
+    await this.verifyUpload(userId, id);
+
+    return this.jobPostingRepository.manager.transaction(async (manager) => {
+      const jobPosting = await manager.findOne(JobPosting, {
+        where: { id, userId },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!jobPosting) {
+        throw new NotFoundException('Job posting not found');
+      }
+
+      const existingJob = await manager.findOne(ProcessingJob, {
+        where: {
+          userId,
+          targetId: id,
+          type: 'JOB_PROCESSING',
+        },
+        order: { createdAt: 'DESC' },
+      });
+
+      if (existingJob) {
+        return { id, processingJobId: existingJob.id };
+      }
+
+      if (jobPosting.status !== 'PENDING_UPLOAD') {
+        throw new ConflictException(
+          'Job posting is not awaiting upload completion',
+        );
+      }
+
+      const job = manager.create(ProcessingJob, {
+        userId,
+        type: 'JOB_PROCESSING',
+        targetId: id,
+        status: 'PENDING',
+        currentStepIndex: 0,
+      });
+
+      await manager.save(job);
+
+      jobPosting.status = 'PROCESSING';
+      await manager.save(jobPosting);
+
+      return { id, processingJobId: job.id };
+    });
   }
 }

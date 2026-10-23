@@ -3,7 +3,9 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
+  ParseUUIDPipe,
   Post,
   Session,
 } from '@nestjs/common';
@@ -22,7 +24,7 @@ export class JobPostingController {
   }
 
   @Post()
-  uploadResume(
+  uploadJob(
     @Session() session: UserSession,
     @Body() dto: FileUploadDto,
   ): Promise<{ id: string; uploadUrl: string }> {
@@ -32,7 +34,7 @@ export class JobPostingController {
   @Get(':id')
   getJob(
     @Session() session: UserSession,
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ): Promise<JobPosting | null> {
     return this.jobService.getJob(session.user.id, id);
   }
@@ -40,8 +42,17 @@ export class JobPostingController {
   @Delete(':id')
   deleteJob(
     @Session() session: UserSession,
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ): Promise<void> {
     return this.jobService.deleteJob(session.user.id, id);
+  }
+
+  @Post(':id/complete')
+  @HttpCode(200)
+  completeUpload(
+    @Session() session: UserSession,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  ): Promise<{ id: string; processingJobId: string }> {
+    return this.jobService.completeUpload(session.user.id, id);
   }
 }
