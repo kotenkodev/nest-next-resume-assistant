@@ -1,6 +1,7 @@
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -26,6 +27,30 @@ export class S3Service {
       forcePathStyle: true,
     });
     this.s3Client = s3Client;
+  }
+
+  async getObjectMetadata(key: string) {
+    return this.s3Client.send(
+      new HeadObjectCommand({
+        Bucket: this.configService.getOrThrow<string>('S3_BUCKET'),
+        Key: key,
+      }),
+    );
+  }
+
+  async getObjectBytes(key: string): Promise<Uint8Array> {
+    const response = await this.s3Client.send(
+      new GetObjectCommand({
+        Bucket: this.configService.getOrThrow<string>('S3_BUCKET'),
+        Key: key,
+      }),
+    );
+
+    if (!response.Body) {
+      throw new Error('Storage returned no file body');
+    }
+
+    return response.Body.transformToByteArray();
   }
 
   async getSignedUrlForObject(key: string) {

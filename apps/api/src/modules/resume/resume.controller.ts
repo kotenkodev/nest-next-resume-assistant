@@ -3,7 +3,9 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
+  ParseUUIDPipe,
   Post,
   Session,
 } from '@nestjs/common';
@@ -32,7 +34,7 @@ export class ResumeController {
   @Get(':id')
   getResume(
     @Session() session: UserSession,
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ): Promise<Resume | null> {
     return this.resumeService.getResume(session.user.id, id);
   }
@@ -40,8 +42,17 @@ export class ResumeController {
   @Delete(':id')
   deleteResume(
     @Session() session: UserSession,
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ): Promise<void> {
     return this.resumeService.deleteResume(session.user.id, id);
+  }
+
+  @Post(':id/complete')
+  @HttpCode(200)
+  completeUpload(
+    @Session() session: UserSession,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  ): Promise<{ id: string; processingJobId: string }> {
+    return this.resumeService.completeUpload(session.user.id, id);
   }
 }
