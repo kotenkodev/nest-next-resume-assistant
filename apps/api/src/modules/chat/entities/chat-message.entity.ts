@@ -7,11 +7,21 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
+import { Conversation } from './conversation.entity';
 
 @Entity('chat_message')
 export class ChatMessage {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Column('uuid')
+  conversationId!: string;
+
+  @ManyToOne(() => Conversation, (conversation) => conversation.messages, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'conversationId' })
+  conversation!: Conversation;
 
   @Column('text')
   userId!: string;
@@ -26,13 +36,6 @@ export class ChatMessage {
   @Column('text')
   content!: string;
 
-  @Column('uuid', { nullable: true })
-  resumeId?: string;
-
-  @Column('uuid', { nullable: true })
-  jobPostingId?: string;
-
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 }
-

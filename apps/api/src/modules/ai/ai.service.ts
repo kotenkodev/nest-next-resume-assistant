@@ -160,4 +160,37 @@ export class AiService {
 
     return result.data;
   }
+
+  async generateChatReply(
+    messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+  ): Promise<string> {
+    const completion = await this.client.chat.completions.create({
+      model: this.model,
+      messages,
+    });
+
+    const choice = completion.choices[0];
+
+    if (!choice || !choice.message.content) {
+      throw new Error('AI did not return a response');
+    }
+
+    return choice.message.content;
+  }
+
+  async *streamChatReply(
+    messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+  ): AsyncGenerator<string, void, unknown> {
+    const stream = await this.client.chat.completions.create({
+      model: this.model,
+      messages,
+      stream: true,
+    });
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) {
+        yield content;
+      }
+    }
+  }
 }
