@@ -1,12 +1,15 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   HttpCode,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Post,
+  Query,
   Session,
 } from '@nestjs/common';
 import { UserSession } from '@thallesp/nestjs-better-auth';
@@ -29,6 +32,15 @@ export class JobPostingController {
     @Body() dto: FileUploadDto,
   ): Promise<{ id: string; uploadUrl: string }> {
     return this.jobService.initiateUpload(session.user.id, dto);
+  }
+
+  @Get('match')
+  findMatchingJobs(
+    @Session() session: UserSession,
+    @Query('resumeId', new ParseUUIDPipe({ version: '4' })) resumeId: string,
+    @Query('limit', new DefaultValuePipe(5), ParseIntPipe) limit: number,
+  ): Promise<Array<{ job: JobPosting; similarityScore: number }>> {
+    return this.jobService.findMatchingJobs(session.user.id, resumeId, limit);
   }
 
   @Get(':id')

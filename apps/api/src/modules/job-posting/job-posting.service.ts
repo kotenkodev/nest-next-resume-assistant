@@ -12,12 +12,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { S3ServiceException } from '@aws-sdk/client-s3';
 import { Repository } from 'typeorm';
 import { ProcessingJob } from '../pipeline/entities/processing-job.entity';
+import { Resume } from '../resume/entities/resume.entity';
 
 @Injectable()
 export class JobPostingService {
   constructor(
     @InjectRepository(JobPosting)
     private readonly jobPostingRepository: Repository<JobPosting>,
+    @InjectRepository(Resume)
+    private readonly resumeRepository: Repository<Resume>,
     private readonly s3Service: S3Service,
   ) {}
 
@@ -147,5 +150,52 @@ export class JobPostingService {
 
       return { id, processingJobId: job.id };
     });
+  }
+
+  async findMatchingJobs(
+    userId: string,
+    resumeId: string,
+    limit = 5,
+  ): Promise<Array<{ job: JobPosting; similarityScore: number }>> {
+    const resume = await this.resumeRepository.findOne({
+      where: { id: resumeId, userId },
+    });
+
+    if (!resume) {
+      throw new NotFoundException('Resume not found');
+    }
+
+    if (!resume.embedding) {
+      throw new BadRequestException('Resume does not have an embedding yet');
+    }
+
+    const vectorString = `[${resume.embedding.join(',')}]`;
+
+    const rawResults = await this.jobPostingRepository
+      .createQueryBuilder('job')
+      .select([
+        'job.id',
+        'job.title',
+        'job.company',
+        'job.fileName',
+        'job.status',
+        'job.parsedData',
+        'job.createdAt',
+      ])
+      .addSelect('1 - (job.embedding <=> :embedding::vector)', 'similarity')
+      .where('job.userId = :userId', { userId })
+      .andWhere('job.status = :status', { status: 'READY' })
+      .andWhere('job.embedding IS NOT NULL')
+      .orderBy('job.embedding <=> :embedding::vector', 'ASC')
+      .limit(limit)
+      .setParameters({ embedding: vectorString })
+      .getRawAndEntities();
+
+    return rawResults.entities.map((job, index) => ({
+      job,
+      similarityScore: Number(
+        Number(rawResults.raw[index]?.similarity ?? 0).toFixed(4),
+      ),
+    }));
   }
 }

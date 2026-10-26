@@ -7,6 +7,9 @@ import { PdfExtractionService } from './pdf-extraction.service';
 import { ProcessingJob } from './entities/processing-job.entity';
 import { AiService } from '../ai/ai.service';
 import { JobPosting } from '../job-posting/entities/job-posting.entity';
+import { EmbeddingService } from '../ai/embedding.service';
+import { buildResumeEmbeddingText } from '../resume/utils/build-resume-embedding-text';
+import { buildJobEmbeddingText } from '../job-posting/utils/build-job-embedding-text';
 
 @Injectable()
 export class PipelineService {
@@ -19,6 +22,7 @@ export class PipelineService {
     private readonly s3Service: S3Service,
     private readonly pdfExtractionService: PdfExtractionService,
     private readonly aiService: AiService,
+    private readonly embeddingService: EmbeddingService,
   ) {}
 
   async extractDocumentText<
@@ -107,12 +111,17 @@ export class PipelineService {
         'Resume',
       );
       const parsedProfile = await this.aiService.parseResume(rawText);
+      const embeddingText = buildResumeEmbeddingText(parsedProfile);
+      const embedding = await this.embeddingService.embed(
+        embeddingText,
+        'RETRIEVAL_DOCUMENT',
+      );
 
       await this.resumeRepository.manager.transaction(async (manager) => {
         const result = await manager.update(
           Resume,
           { id: job.targetId, userId: job.userId },
-          { status: 'READY', parsedProfile },
+          { status: 'READY', parsedProfile, embedding },
         );
 
         if (result.affected !== 1) {
@@ -143,12 +152,17 @@ export class PipelineService {
         'JobPosting',
       );
       const parsedData = await this.aiService.parseJobPosting(rawText);
+      const embeddingText = buildJobEmbeddingText(parsedData);
+      const embedding = await this.embeddingService.embed(
+        embeddingText,
+        'RETRIEVAL_DOCUMENT',
+      );
 
       await this.jobPostingRepository.manager.transaction(async (manager) => {
         const result = await manager.update(
           JobPosting,
           { id: job.targetId, userId: job.userId },
-          { status: 'READY', parsedData },
+          { status: 'READY', parsedData, embedding },
         );
 
         if (result.affected !== 1) {
