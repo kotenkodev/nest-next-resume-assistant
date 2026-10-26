@@ -672,18 +672,14 @@ function SidebarMenuSkeleton({
     >
       {showIcon && (
         <Skeleton
-          className="size-4 rounded-md"
+          className="size-4 shrink-0 rounded-md"
           data-sidebar="menu-skeleton-icon"
         />
       )}
       <Skeleton
-        className="h-4 max-w-(--skeleton-width) flex-1"
+        className="h-3.5 rounded-sm"
         data-sidebar="menu-skeleton-text"
-        style={
-          {
-            '--skeleton-width': width,
-          } as React.CSSProperties
-        }
+        style={{ width }}
       />
     </div>
   );

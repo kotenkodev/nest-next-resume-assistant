@@ -1,5 +1,5 @@
 import type { ConversationDto, CreateConversationPayload } from '@repo/shared';
-import { API_BASE, request } from './client';
+import { request } from './client';
 export interface ConversationDetail extends ConversationDto {
   messages: Array<{
     id: string;
@@ -11,18 +11,16 @@ export interface ConversationDetail extends ConversationDto {
 
 export const chatApi = {
   listConversations: () =>
-    request<ConversationDto[]>(`${API_BASE}/chat/conversations`),
+    request<ConversationDto[]>(`/api/chat/conversations`),
   getConversation: (conversationId: string) =>
-    request<ConversationDetail>(
-      `${API_BASE}/chat/conversations/${conversationId}`,
-    ),
+    request<ConversationDetail>(`/api/chat/conversations/${conversationId}`),
   createConversation: (payload: CreateConversationPayload) =>
-    request<ConversationDto>(`${API_BASE}/chat/conversations`, {
+    request<ConversationDto>(`/api/chat/conversations`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   deleteConversation: (conversationId: string) =>
-    request<void>(`${API_BASE}/chat/conversations/${conversationId}`, {
+    request<void>(`/api/chat/conversations/${conversationId}`, {
       method: 'DELETE',
     }),
   async streamMessage(
@@ -37,7 +35,7 @@ export const chatApi = {
   ): Promise<void> {
     try {
       const response = await fetch(
-        `${API_BASE}/chat/conversations/${conversationId}/messages/stream`,
+        `/api/chat/conversations/${conversationId}/messages/stream`,
         {
           method: 'POST',
           headers: {
