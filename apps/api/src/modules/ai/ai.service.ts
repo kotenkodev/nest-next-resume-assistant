@@ -2,20 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import {
-  jsonParsedProfileSchema,
-  parsedProfileSchema,
-  type ParsedProfile,
-} from '../resume/schemas/parsed-profile.schema';
-import {
-  jsonParsedJobRequirementsSchema,
-  parsedJobRequirementsSchema,
-  type ParsedJobRequirements,
-} from '../job-posting/schemas/parsed-job-requirements.schema';
-import {
   fitAnalysisOutputSchema,
   jsonFitAnalysisOutputSchema,
+  jsonParsedJobRequirementsSchema,
+  jsonParsedProfileSchema,
+  parsedJobRequirementsSchema,
+  parsedProfileSchema,
   type FitAnalysisOutput,
-} from '../analysis/schemas/fit-analysis-data.schema';
+  type ParsedJobRequirements,
+  type ParsedProfile,
+} from '@repo/shared';
 
 @Injectable()
 export class AiService {

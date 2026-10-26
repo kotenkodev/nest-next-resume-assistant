@@ -8,8 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
-import type { DocumentStatus } from '../../storage/document-status';
-import type { ParsedProfile } from '../schemas/parsed-profile.schema';
+import type { DocumentStatus, ParsedProfile } from '@repo/shared';
 
 @Entity('resume')
 export class Resume {

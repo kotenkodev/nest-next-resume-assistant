@@ -12,10 +12,10 @@ import { User } from '../../auth/entities/user.entity';
 import { Resume } from '../../resume/entities/resume.entity';
 import { JobPosting } from '../../job-posting/entities/job-posting.entity';
 import {
-  ExperienceAlignmentResult,
-  InterviewPrepResult,
-  SkillGapResult,
-} from '../schemas/fit-analysis-data.schema';
+  type ExperienceAlignmentResult,
+  type InterviewPrepResult,
+  type SkillGapResult,
+} from '@repo/shared';
 
 @Entity('fit_analysis')
 @Index(['resumeId', 'jobPostingId'], { unique: true })

@@ -1,4 +1,4 @@
-import type { ParsedJobRequirements } from '../schemas/parsed-job-requirements.schema';
+import type { ParsedJobRequirements } from '@repo/shared';
 
 export function buildJobEmbeddingText(
   requirements: ParsedJobRequirements,

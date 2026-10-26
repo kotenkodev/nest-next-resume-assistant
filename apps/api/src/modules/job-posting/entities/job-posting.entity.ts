@@ -8,8 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
-import type { DocumentStatus } from '../../storage/document-status';
-import type { ParsedJobRequirements } from '../schemas/parsed-job-requirements.schema';
+import type { DocumentStatus, ParsedJobRequirements } from '@repo/shared';
 
 @Entity('job_posting')
 export class JobPosting {

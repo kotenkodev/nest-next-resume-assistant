@@ -1,4 +1,4 @@
-import type { ParsedProfile } from '../schemas/parsed-profile.schema';
+import type { ParsedProfile } from '@repo/shared';
 
 export function buildResumeEmbeddingText(profile: ParsedProfile): string {
   const sections: string[] = [];
