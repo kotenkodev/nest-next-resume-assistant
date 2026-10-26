@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { APP_NAME } from '@repo/shared';
 import './globals.css';
+import Providers from './providers';
 
 export const metadata: Metadata = {
   title: APP_NAME,
@@ -12,8 +13,8 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="h-dvh w-screen overflow-hidden  flex flex-col">
-        {children}
+      <body className="h-dvh w-screen overflow-hidden flex flex-col">
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

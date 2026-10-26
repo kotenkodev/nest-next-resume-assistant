@@ -12,10 +12,7 @@ export interface HealthResponse {
 // ---------------------------------------------------------------------------
 
 export type DocumentStatus =
-  | 'PENDING_UPLOAD'
-  | 'PROCESSING'
-  | 'READY'
-  | 'FAILED';
+  'PENDING_UPLOAD' | 'PROCESSING' | 'READY' | 'FAILED';
 
 export interface FileUploadPayload {
   fileName: string;
