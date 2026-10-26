@@ -5,8 +5,6 @@ method: GET
 headers:
   - key: Accept
     value: application/json
-  - key: Cookie
-    value: 'better-auth.session_token={{sessionToken}}'
 pathVariables:
   - key: resumeId
     value: '{{resumeId}}'
@@ -29,5 +27,22 @@ body:
   type: text
   content: ""
 settings: {}
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+      pm.test('Response is an array', () => {
+        const json = pm.response.json();
+        pm.expect(json).to.be.an('array');
+      });
+      pm.test('Each analysis has required fields', () => {
+        const json = pm.response.json();
+        json.forEach(a => {
+          pm.expect(a).to.have.property('id');
+          pm.expect(a).to.have.property('resumeId').that.equals(pm.environment.get('resumeId'));
+          pm.expect(a).to.have.property('matchScore').that.is.a('number');
+        });
+      });
 examples: ./.resources/Get all analyses for a resume.resources/examples
 order: 3000

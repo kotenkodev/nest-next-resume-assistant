@@ -7,8 +7,6 @@ headers:
     value: application/json
   - key: Accept
     value: application/json
-  - key: Cookie
-    value: 'better-auth.session_token={{sessionToken}}'
 body:
   type: json
   content: |-
@@ -54,6 +52,18 @@ scripts:
         pm.environment.set('resumeId', json.id);
         console.log('resumeId set to', json.id);
       }
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 201', () => pm.response.to.have.status(201));
+      pm.test('Response has id and uploadUrl', () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property('id').that.is.a('string');
+        pm.expect(json).to.have.property('uploadUrl').that.is.a('string');
+      });
+      pm.test('resumeId env var was set', () => {
+        pm.expect(pm.environment.get('resumeId')).to.not.be.empty;
+      });
 settings: {}
 examples: ./.resources/Initiate a resume upload.resources/examples
 order: 2000

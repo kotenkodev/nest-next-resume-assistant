@@ -5,8 +5,6 @@ method: POST
 headers:
   - key: Accept
     value: application/json
-  - key: Cookie
-    value: 'better-auth.session_token={{sessionToken}}'
 pathVariables:
   - key: id
     value: '{{resumeId}}'
@@ -28,6 +26,16 @@ pathVariables:
 body:
   type: text
   content: ""
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+      pm.test('Response has id and processingJobId', () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property('id').that.is.a('string');
+        pm.expect(json).to.have.property('processingJobId').that.is.a('string');
+      });
 settings: {}
 examples: ./.resources/Complete the upload and trigger processing.resources/examples
 order: 5000

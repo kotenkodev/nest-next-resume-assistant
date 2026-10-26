@@ -7,8 +7,6 @@ headers:
     value: application/json
   - key: Accept
     value: application/json
-  - key: Cookie
-    value: 'better-auth.session_token={{sessionToken}}'
 body:
   type: json
   content: |-
@@ -57,6 +55,19 @@ scripts:
         pm.environment.set('conversationId', json.id);
         console.log('conversationId set to', json.id);
       }
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 201', () => pm.response.to.have.status(201));
+      pm.test('Response has Conversation fields', () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property('id').that.is.a('string');
+        pm.expect(json).to.have.property('resumeId').that.equals(pm.environment.get('resumeId'));
+        pm.expect(json).to.have.property('createdAt');
+      });
+      pm.test('conversationId env var was set', () => {
+        pm.expect(pm.environment.get('conversationId')).to.not.be.empty;
+      });
 settings: {}
 examples: ./.resources/Create a new conversation.resources/examples
 order: 2000

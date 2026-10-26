@@ -8,6 +8,8 @@
 
 Keep **Disable cookie jar** turned off in request settings. The collection intentionally has no manual `Cookie` headers or `sessionToken` variable: manual cookies can conflict with the cookie jar and become stale when sessions change.
 
+For collection runs, create your test account once, then deselect **Sign up with email and password** on subsequent runs. Run **Sign in**, then **Verify authenticated session**, then the protected requests. The **Cleanup** folder signs out at the end; running sign-out before protected requests causes 401 responses. The session check stops a collection run early if authentication fails. Running a protected folder alone requires an existing Postman session. After a full run, sign in again before sending individual requests because cleanup has signed you out.
+
 If a request returns 401, check **Cookies** for the API host and sign in again. Use the same hostname for all requests (`localhost` and `127.0.0.1` have separate cookies). HTTPS cookies require HTTPS requests. If you previously used this collection, remove any old manual Cookie headers from your Postman copy and clear its old API-host cookies once before signing in again.
 
 For a 403 on an auth request, confirm `originUrl` matches the server's trusted origin. Signing in through the browser does not automatically sign in Postman; use the collection's sign-in request.

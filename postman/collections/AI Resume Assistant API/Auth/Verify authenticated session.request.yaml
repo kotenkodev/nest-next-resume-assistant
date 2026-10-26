@@ -1,0 +1,22 @@
+$kind: http-request
+description: Verify that Postman sends a valid session cookie before running protected requests.
+url: "{{baseUrl}}/me"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Session cookie authenticates the request', () => {
+        pm.expect(pm.response.code, 'Sign in successfully and enable the cookie jar before running protected requests').to.equal(200);
+      });
+      if (pm.response.code === 200) {
+        pm.test('Session contains a user', () => {
+          pm.expect(pm.response.json().user).to.have.property('id');
+        });
+      } else {
+        pm.execution.setNextRequest(null);
+      }
+settings: {}
+order: 2500

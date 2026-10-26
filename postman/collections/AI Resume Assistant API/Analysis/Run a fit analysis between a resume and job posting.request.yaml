@@ -7,8 +7,6 @@ headers:
     value: application/json
   - key: Accept
     value: application/json
-  - key: Cookie
-    value: 'better-auth.session_token={{sessionToken}}'
 body:
   type: json
   content: |-
@@ -37,5 +35,26 @@ body:
       ]
     }
 settings: {}
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 201', () => pm.response.to.have.status(201));
+      pm.test('Response has FitAnalysis fields', () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property('id').that.is.a('string');
+        pm.expect(json).to.have.property('resumeId').that.equals(pm.environment.get('resumeId'));
+        pm.expect(json).to.have.property('jobPostingId').that.equals(pm.environment.get('jobPostingId'));
+        pm.expect(json).to.have.property('matchScore').that.is.a('number');
+        pm.expect(json.matchScore).to.be.within(0, 100);
+        pm.expect(json).to.have.property('skillGaps').that.is.an('object');
+        pm.expect(json).to.have.property('experienceAlignment').that.is.an('object');
+        pm.expect(json).to.have.property('interviewPrep').that.is.an('object');
+      });
+      const json = pm.response.json();
+      if (json && json.id) {
+        pm.environment.set('analysisId', json.id);
+        console.log('analysisId set to', json.id);
+      }
 examples: ./.resources/Run a fit analysis between a resume and job posting.resources/examples
 order: 1000

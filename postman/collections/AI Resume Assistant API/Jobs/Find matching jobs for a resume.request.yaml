@@ -1,0 +1,35 @@
+$kind: http-request
+description: Find the authenticated user's READY job postings ranked by embedding similarity to a resume. Set resumeId to an existing processed resume with an embedding. Sign in first; Postman's cookie jar supplies the session. An empty array means no eligible jobs were found.
+url: '{{baseUrl}}/jobs/match'
+method: GET
+headers:
+  - key: Accept
+    value: application/json
+queryParams:
+  - key: resumeId
+    value: '{{resumeId}}'
+    disabled: false
+    description: Required UUID v4 of a resume owned by the authenticated user, with an embedding.
+  - key: limit
+    value: '5'
+    disabled: false
+    description: Maximum number of matches; the API defaults to 5 when omitted.
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+      pm.test('Response contains ranked job matches', () => {
+        const matches = pm.response.json();
+        pm.expect(matches).to.be.an('array');
+        matches.forEach((match, index) => {
+          pm.expect(match.job).to.have.property('id').that.is.a('string');
+          pm.expect(match.job).to.have.property('status', 'READY');
+          pm.expect(match.similarityScore).to.be.a('number');
+          if (index > 0) {
+            pm.expect(match.similarityScore).to.be.at.most(matches[index - 1].similarityScore);
+          }
+        });
+      });
+settings: {}
+order: 3500

@@ -5,8 +5,6 @@ method: GET
 headers:
   - key: Accept
     value: application/json
-  - key: Cookie
-    value: 'better-auth.session_token={{sessionToken}}'
 queryParams:
   - key: resumeId
     value: '{{resumeId}}'
@@ -46,5 +44,20 @@ body:
   type: text
   content: ""
 settings: {}
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+      pm.test('Response is FitAnalysis or null', () => {
+        const json = pm.response.json();
+        if (json !== null) {
+          pm.expect(json).to.have.property('id').that.is.a('string');
+          pm.expect(json).to.have.property('matchScore').that.is.a('number');
+          pm.expect(json).to.have.property('skillGaps').that.is.an('object');
+          pm.expect(json).to.have.property('experienceAlignment').that.is.an('object');
+          pm.expect(json).to.have.property('interviewPrep').that.is.an('object');
+        }
+      });
 examples: ./.resources/Get analysis for a resume and job posting pair.resources/examples
 order: 2000

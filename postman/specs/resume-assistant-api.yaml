@@ -294,6 +294,76 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /jobs/match:
+    get:
+      tags:
+        - Jobs
+      summary: Find matching jobs for a resume
+      description: Returns the authenticated user's READY job postings with embeddings, ranked by descending cosine similarity to the resume. The resume must belong to the user and have an embedding.
+      operationId: findMatchingJobs
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: resumeId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID v4 of the resume.
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 5
+          description: Maximum number of matching job postings.
+      responses:
+        '200':
+          description: Job matches ordered by descending similarity; may be empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - job
+                    - similarityScore
+                  properties:
+                    job:
+                      type: object
+                      description: Selected job posting fields.
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        title:
+                          type: string
+                          nullable: true
+                        company:
+                          type: string
+                          nullable: true
+                        fileName:
+                          type: string
+                        status:
+                          type: string
+                          enum: [READY]
+                        parsedData:
+                          type: object
+                          nullable: true
+                        createdAt:
+                          type: string
+                          format: date-time
+                    similarityScore:
+                      type: number
+                      description: Cosine similarity rounded to four decimal places.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /jobs/{id}:
     get:
       tags:

@@ -5,11 +5,27 @@ method: GET
 headers:
   - key: Accept
     value: application/json
-  - key: Cookie
-    value: 'better-auth.session_token={{sessionToken}}'
 body:
   type: text
   content: ""
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+      pm.test('Response is an array', () => {
+        const json = pm.response.json();
+        pm.expect(json).to.be.an('array');
+      });
+      pm.test('Each resume has required fields', () => {
+        const json = pm.response.json();
+        json.forEach(r => {
+          pm.expect(r).to.have.property('id');
+          pm.expect(r).to.have.property('fileName');
+          pm.expect(r).to.have.property('status');
+          pm.expect(r).to.have.property('createdAt');
+        });
+      });
 settings: {}
 examples: ./.resources/List all resumes for the authenticated user.resources/examples
 order: 1000

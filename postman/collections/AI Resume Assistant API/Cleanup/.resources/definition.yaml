@@ -1,0 +1,3 @@
+$kind: collection
+description: End the session after all protected requests have run.
+order: 6000

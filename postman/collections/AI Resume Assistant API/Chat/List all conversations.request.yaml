@@ -5,11 +5,26 @@ method: GET
 headers:
   - key: Accept
     value: application/json
-  - key: Cookie
-    value: 'better-auth.session_token={{sessionToken}}'
 body:
   type: text
   content: ""
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+      pm.test('Response is an array', () => {
+        const json = pm.response.json();
+        pm.expect(json).to.be.an('array');
+      });
+      pm.test('Each conversation has required fields', () => {
+        const json = pm.response.json();
+        json.forEach(c => {
+          pm.expect(c).to.have.property('id');
+          pm.expect(c).to.have.property('resumeId');
+          pm.expect(c).to.have.property('createdAt');
+        });
+      });
 settings: {}
 examples: ./.resources/List all conversations.resources/examples
 order: 1000

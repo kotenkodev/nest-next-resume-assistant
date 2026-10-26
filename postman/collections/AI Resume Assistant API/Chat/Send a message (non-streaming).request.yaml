@@ -7,8 +7,6 @@ headers:
     value: application/json
   - key: Accept
     value: application/json
-  - key: Cookie
-    value: 'better-auth.session_token={{sessionToken}}'
 pathVariables:
   - key: id
     value: '{{conversationId}}'
@@ -48,6 +46,29 @@ body:
         "message"
       ]
     }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 201', () => pm.response.to.have.status(201));
+      pm.test('Response has userMessage and assistantMessage', () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property('userMessage').that.is.an('object');
+        pm.expect(json).to.have.property('assistantMessage').that.is.an('object');
+      });
+      pm.test('userMessage has correct shape', () => {
+        const { userMessage } = pm.response.json();
+        pm.expect(userMessage).to.have.property('id').that.is.a('string');
+        pm.expect(userMessage).to.have.property('role').that.equals('user');
+        pm.expect(userMessage).to.have.property('content').that.is.a('string');
+        pm.expect(userMessage).to.have.property('conversationId').that.equals(pm.environment.get('conversationId'));
+      });
+      pm.test('assistantMessage has correct shape', () => {
+        const { assistantMessage } = pm.response.json();
+        pm.expect(assistantMessage).to.have.property('id').that.is.a('string');
+        pm.expect(assistantMessage).to.have.property('role').that.equals('assistant');
+        pm.expect(assistantMessage).to.have.property('content').that.is.a('string');
+      });
 settings: {}
 examples: ./.resources/Send a message (non-streaming).resources/examples
 order: 5000
