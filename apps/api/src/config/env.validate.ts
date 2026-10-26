@@ -89,7 +89,7 @@ export class EnvValidation {
 
   @IsString()
   @IsNotEmpty()
-  GEMINI_API_KEY!: string;
+  JINA_API_KEY!: string;
 
   @IsString()
   @IsNotEmpty()
