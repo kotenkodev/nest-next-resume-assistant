@@ -29,8 +29,21 @@ export class ResumeService {
     return this.resumeRepository.findOne({ where: { userId, id } });
   }
 
-  deleteResume(userId: string, id: string): Promise<void> {
-    return this.resumeRepository.delete({ userId, id }).then(() => {});
+  async deleteResume(userId: string, id: string): Promise<void> {
+    const resume = await this.resumeRepository.findOne({
+      where: { userId, id },
+    });
+
+    if (!resume) return;
+
+    await this.resumeRepository.manager.transaction(async (manager) => {
+      await manager.delete(ProcessingJob, { targetId: id, userId });
+      await manager.delete(Resume, { id, userId });
+    });
+
+    if (resume.s3Key) {
+      await this.s3Service.deleteObjectCommand(resume.s3Key).catch(() => {});
+    }
   }
 
   async initiateUpload(

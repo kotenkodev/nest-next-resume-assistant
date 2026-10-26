@@ -32,8 +32,21 @@ export class JobPostingService {
     return this.jobPostingRepository.findOne({ where: { userId, id } });
   }
 
-  deleteJob(userId: string, id: string): Promise<void> {
-    return this.jobPostingRepository.delete({ userId, id }).then(() => {});
+  async deleteJob(userId: string, id: string): Promise<void> {
+    const job = await this.jobPostingRepository.findOne({
+      where: { userId, id },
+    });
+
+    if (!job) return;
+
+    await this.jobPostingRepository.manager.transaction(async (manager) => {
+      await manager.delete(ProcessingJob, { targetId: id, userId });
+      await manager.delete(JobPosting, { id, userId });
+    });
+
+    if (job.s3Key) {
+      await this.s3Service.deleteObjectCommand(job.s3Key).catch(() => {});
+    }
   }
 
   async initiateUpload(

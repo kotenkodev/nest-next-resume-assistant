@@ -52,6 +52,7 @@ export class JobPostingController {
   }
 
   @Delete(':id')
+  @HttpCode(204)
   deleteJob(
     @Session() session: UserSession,
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,

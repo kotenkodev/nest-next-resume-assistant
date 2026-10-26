@@ -46,7 +46,7 @@ export class Resume {
   @Column('jsonb', { nullable: true })
   parsedProfile?: ParsedProfile;
 
-  @Column('vector', { length: 1536, nullable: true })
+  @Column('vector', { length: 1024, nullable: true })
   embedding?: number[];
 
   @CreateDateColumn({ type: 'timestamptz' })

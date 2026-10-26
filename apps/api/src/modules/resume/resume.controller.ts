@@ -40,6 +40,7 @@ export class ResumeController {
   }
 
   @Delete(':id')
+  @HttpCode(204)
   deleteResume(
     @Session() session: UserSession,
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
