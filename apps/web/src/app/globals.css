@@ -625,3 +625,22 @@
     display: none;
   }
 }
+
+/* --- Sonner Toaster Custom Theme --------------------------------------- */
+[data-sonner-toaster] {
+  --normal-bg: var(--popover);
+  --normal-border: var(--border);
+  --normal-text: var(--popover-foreground);
+  --success-bg: var(--popover);
+  --success-border: color-mix(in oklch, var(--success) 35%, transparent);
+  --success-text: var(--popover-foreground);
+  --error-bg: var(--popover);
+  --error-border: color-mix(in oklch, var(--destructive) 35%, transparent);
+  --error-text: var(--popover-foreground);
+  --warning-bg: var(--popover);
+  --warning-border: color-mix(in oklch, var(--warning) 35%, transparent);
+  --warning-text: var(--popover-foreground);
+  --info-bg: var(--popover);
+  --info-border: color-mix(in oklch, var(--info) 35%, transparent);
+  --info-text: var(--popover-foreground);
+}

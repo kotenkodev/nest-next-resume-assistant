@@ -20,10 +20,10 @@ export function Header() {
         >
           <SidebarIcon />
         </Button>
-        <Separator orientation="vertical" className="h-4" />
+        <Separator orientation="vertical" className="h-14" />
       </div>
       <div className="flex items-center gap-2">
-        <Separator orientation="vertical" className="h-4" />
+        <Separator orientation="vertical" className="h-14" />
         <Button
           className="scale-x-[-1] h-8 w-8"
           variant="ghost"

@@ -160,7 +160,12 @@ const transport = chat.transport({
 
 const MotionMessageScrollerItem = motion.create(MessageScrollerItem);
 
-export function ChatDemo() {
+export function Chat({
+  conversationId,
+}: {
+  conversationId?: string;
+  productId?: string;
+} = {}) {
   const { messages, sendMessage, setMessages, status } = useChat({
     messages: initialMessages,
     transport,

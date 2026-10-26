@@ -18,7 +18,6 @@ import {
   SidebarMenuSkeleton,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   SparklesIcon,
   PlusIcon,

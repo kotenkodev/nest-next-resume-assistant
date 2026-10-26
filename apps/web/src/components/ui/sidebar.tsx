@@ -210,6 +210,7 @@ function Sidebar({
   className,
   children,
   dir,
+  style,
   ...props
 }: React.ComponentProps<'div'> & {
   side?: 'left' | 'right';
@@ -226,6 +227,12 @@ function Sidebar({
           'flex h-full w-(--sidebar-width) flex-col bg-sidebar text-sidebar-foreground',
           className,
         )}
+        style={
+          {
+            '--sidebar-width': side === 'right' ? '24rem' : '18.5rem',
+            ...style,
+          } as React.CSSProperties
+        }
         {...props}
       >
         {children}
@@ -245,6 +252,7 @@ function Sidebar({
           style={
             {
               '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
+              ...style,
             } as React.CSSProperties
           }
           side={side}
@@ -267,6 +275,12 @@ function Sidebar({
       data-variant={variant}
       data-side={side}
       data-slot="sidebar"
+      style={
+        {
+          '--sidebar-width': side === 'right' ? '24rem' : '18.5rem',
+          ...style,
+        } as React.CSSProperties
+      }
     >
       {/* This is what handles the sidebar gap on desktop */}
       <div
