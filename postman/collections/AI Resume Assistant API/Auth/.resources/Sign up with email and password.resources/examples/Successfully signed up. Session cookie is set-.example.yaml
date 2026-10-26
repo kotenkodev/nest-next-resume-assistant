@@ -1,0 +1,47 @@
+$kind: http-example
+name: Successfully signed up. Session cookie is set.
+request:
+  url: "{{baseUrl}}/auth/sign-up/email"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "email": "user@example.com",
+        "password": "secret123",
+        "name": "John Doe"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Set-Cookie
+      value: string
+      disabled: false
+      description: Session cookie
+      $type: string
+  body:
+    type: json
+    content: |-
+      {
+        "token": "string",
+        "user": {}
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object"
+          }
+        }
+      }
+order: 1000

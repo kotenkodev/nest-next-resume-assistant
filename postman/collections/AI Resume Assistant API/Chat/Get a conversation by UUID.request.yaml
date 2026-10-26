@@ -1,0 +1,33 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/chat/conversations/:id"
+method: GET
+headers:
+  - key: Accept
+    value: application/json
+  - key: Cookie
+    value: 'better-auth.session_token={{sessionToken}}'
+pathVariables:
+  - key: id
+    value: '{{conversationId}}'
+    disabled: false
+    description: UUID of the resource
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
+settings: {}
+examples: ./.resources/Get a conversation by UUID.resources/examples
+order: 3000

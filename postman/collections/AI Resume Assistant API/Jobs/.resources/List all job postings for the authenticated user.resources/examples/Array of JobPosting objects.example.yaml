@@ -1,0 +1,96 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/jobs"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: better-auth.session_token
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "e692b073-6d4f-7d11-f740-e2a9eb46dad8",
+          "userId": "string",
+          "fileName": "string",
+          "fileSize": 5987,
+          "s3Key": "string",
+          "contentType": "string",
+          "status": "READY",
+          "rawText": "string",
+          "createdAt": "2016-11-17T22:26:56.534Z",
+          "updatedAt": "1995-03-02T12:49:21.617Z"
+        },
+        {
+          "id": "9bf2a6a8-5865-91d9-0464-e69a8c6b123c",
+          "userId": "string",
+          "fileName": "string",
+          "fileSize": 9264,
+          "s3Key": "string",
+          "contentType": "string",
+          "status": "FAILED",
+          "rawText": "string",
+          "createdAt": "2013-10-15T14:54:53.810Z",
+          "updatedAt": "1993-02-04T12:48:24.122Z"
+        }
+      ]
+    $type: |-
+      {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "userId": {
+              "type": "string"
+            },
+            "fileName": {
+              "type": "string"
+            },
+            "fileSize": {
+              "type": "integer"
+            },
+            "s3Key": {
+              "type": "string"
+            },
+            "contentType": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "PENDING_UPLOAD",
+                "PROCESSING",
+                "READY",
+                "FAILED"
+              ]
+            },
+            "rawText": {
+              "type": "string"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      }
+order: 1000

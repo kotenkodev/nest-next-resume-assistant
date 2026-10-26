@@ -1,0 +1,4 @@
+$kind: collection
+description: NestJS AI Resume Assistant API with cookie-based session authentication.
+variables:
+  baseUrl: http://localhost:3001/api

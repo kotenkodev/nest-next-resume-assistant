@@ -1,0 +1,88 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/jobs/:id"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: better-auth.session_token
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  pathVariables:
+    - key: id
+      value: 321e34d9-bf03-b928-9b89-9654ad15f5fa
+      disabled: false
+      description: UUID of the resource
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "6af48c5b-6d2b-dd27-3cce-c9f0ed21da26",
+        "userId": "string",
+        "fileName": "string",
+        "fileSize": 7898,
+        "s3Key": "string",
+        "contentType": "string",
+        "status": "FAILED",
+        "rawText": "string",
+        "createdAt": "1974-09-14T22:55:19.523Z",
+        "updatedAt": "1975-05-06T00:14:18.152Z"
+      }
+    $type: |-
+      {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "userId": {
+                "type": "string"
+              },
+              "fileName": {
+                "type": "string"
+              },
+              "fileSize": {
+                "type": "integer"
+              },
+              "s3Key": {
+                "type": "string"
+              },
+              "contentType": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PENDING_UPLOAD",
+                  "PROCESSING",
+                  "READY",
+                  "FAILED"
+                ]
+              },
+              "rawText": {
+                "type": "string"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        ]
+      }
+order: 1000

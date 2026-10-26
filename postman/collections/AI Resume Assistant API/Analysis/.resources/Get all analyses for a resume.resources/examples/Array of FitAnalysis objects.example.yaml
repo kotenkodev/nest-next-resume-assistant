@@ -1,0 +1,103 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/analysis/resume/:resumeId"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: better-auth.session_token
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  pathVariables:
+    - key: resumeId
+      value: 321e34d9-bf03-b928-9b89-9654ad15f5fa
+      disabled: false
+      description: UUID of the resume
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "b2b2c8b4-5e1b-e52f-437a-765c78a15416",
+          "userId": "string",
+          "resumeId": "c4e2d9be-3d43-4210-e677-2b9926bc835e",
+          "jobPostingId": "d81c5b4b-e4c8-1a1c-5f09-9706d4c3b298",
+          "matchScore": 82,
+          "skillGaps": {},
+          "experienceAlignment": {},
+          "interviewPrep": {},
+          "createdAt": "1991-03-29T00:38:10.749Z",
+          "updatedAt": "1970-10-04T03:21:31.286Z"
+        },
+        {
+          "id": "e4efd03e-52b9-a7a7-1596-1d6d9dd570a2",
+          "userId": "string",
+          "resumeId": "5a09d416-1b0a-e034-a713-c11dac5e8a80",
+          "jobPostingId": "ed342e33-5d98-d3e7-6678-303f3488ebcd",
+          "matchScore": 82,
+          "skillGaps": {},
+          "experienceAlignment": {},
+          "interviewPrep": {},
+          "createdAt": "1999-02-13T07:17:15.411Z",
+          "updatedAt": "1979-10-13T11:43:04.213Z"
+        }
+      ]
+    $type: |-
+      {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "userId": {
+              "type": "string"
+            },
+            "resumeId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "jobPostingId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "matchScore": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100,
+              "example": 82
+            },
+            "skillGaps": {
+              "type": "object",
+              "description": "Skill gap analysis data"
+            },
+            "experienceAlignment": {
+              "type": "object",
+              "description": "Experience alignment analysis data"
+            },
+            "interviewPrep": {
+              "type": "object",
+              "description": "Interview preparation suggestions"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      }
+order: 1000

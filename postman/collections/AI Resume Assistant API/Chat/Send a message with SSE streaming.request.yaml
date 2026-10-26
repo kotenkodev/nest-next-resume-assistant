@@ -1,0 +1,53 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/chat/conversations/:id/messages/stream"
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: text/event-stream
+  - key: Cookie
+    value: 'better-auth.session_token={{sessionToken}}'
+pathVariables:
+  - key: id
+    value: '{{conversationId}}'
+    disabled: false
+    description: UUID of the resource
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "message": "What are the key skills I should highlight?"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "example": "What are the key skills I should highlight?"
+        }
+      },
+      "required": [
+        "message"
+      ]
+    }
+settings: {}
+examples: ./.resources/Send a message with SSE streaming.resources/examples
+order: 6000

@@ -1,0 +1,15 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/jobs"
+method: GET
+headers:
+  - key: Accept
+    value: application/json
+  - key: Cookie
+    value: 'better-auth.session_token={{sessionToken}}'
+body:
+  type: text
+  content: ""
+settings: {}
+examples: ./.resources/List all job postings for the authenticated user.resources/examples
+order: 1000

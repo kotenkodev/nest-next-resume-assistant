@@ -1,0 +1,33 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/jobs/:id/complete"
+method: POST
+headers:
+  - key: Accept
+    value: application/json
+  - key: Cookie
+    value: 'better-auth.session_token={{sessionToken}}'
+pathVariables:
+  - key: id
+    value: '{{jobPostingId}}'
+    disabled: false
+    description: UUID of the resource
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
+settings: {}
+examples: ./.resources/Complete the upload and trigger processing.resources/examples
+order: 5000

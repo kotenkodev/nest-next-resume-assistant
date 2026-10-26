@@ -1,0 +1,40 @@
+name: "AI Resume Assistant - Local"
+values:
+  - key: baseUrl
+    value: 'http://localhost:3001/api'
+    type: default
+    enabled: true
+
+  # Auth credentials for testing
+  - key: testEmail
+    value: 'test@example.com'
+    type: default
+    enabled: true
+  - key: testPassword
+    value: 'password123'
+    type: default
+    enabled: true
+
+  # Populated automatically by the Sign In post-response script
+  - key: sessionToken
+    value: ''
+    type: default
+    enabled: true
+
+  # Populated automatically after creating/uploading a resume
+  - key: resumeId
+    value: ''
+    type: default
+    enabled: true
+
+  # Populated automatically after creating/uploading a job posting
+  - key: jobPostingId
+    value: ''
+    type: default
+    enabled: true
+
+  # Populated automatically after creating a conversation
+  - key: conversationId
+    value: ''
+    type: default
+    enabled: true

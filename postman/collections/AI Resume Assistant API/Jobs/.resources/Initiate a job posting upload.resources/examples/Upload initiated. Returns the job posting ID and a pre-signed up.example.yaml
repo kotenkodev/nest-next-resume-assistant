@@ -1,0 +1,48 @@
+$kind: http-example
+name: Upload initiated. Returns the job posting ID and a pre-signed upload URL.
+request:
+  url: "{{baseUrl}}/jobs"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: better-auth.session_token
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: json
+    content: |-
+      {
+        "fileName": "my-resume.pdf",
+        "contentType": "application/pdf",
+        "fileSize": 204800
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "fc5f8146-306b-ba47-9b43-d04007fcb06a",
+        "uploadUrl": "https://RHFxuyjzxMHkYqWeOMjfJotDQzyyFdPBU.gueTHBo0IeGqirTfZqznC+7yFEs4JzXOPd-S99V4kVsx8.L5YyxrUULXnIV.T-PB-HkM8as"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "uploadUrl": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+order: 1000

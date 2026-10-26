@@ -1,0 +1,3 @@
+$kind: collection
+description: Conversation and messaging endpoints
+order: 5000

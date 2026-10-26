@@ -1,0 +1,41 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/analysis"
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+  - key: Cookie
+    value: 'better-auth.session_token={{sessionToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "resumeId": "{{resumeId}}",
+      "jobPostingId": "{{jobPostingId}}"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "resumeId": {
+          "type": "string",
+          "example": "123e4567-e89b-12d3-a456-426614174000",
+          "format": "uuid"
+        },
+        "jobPostingId": {
+          "type": "string",
+          "example": "123e4567-e89b-12d3-a456-426614174001",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "resumeId",
+        "jobPostingId"
+      ]
+    }
+settings: {}
+examples: ./.resources/Run a fit analysis between a resume and job posting.resources/examples
+order: 1000

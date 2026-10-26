@@ -1,0 +1,62 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/chat/conversations"
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+  - key: Cookie
+    value: 'better-auth.session_token={{sessionToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "resumeId": "{{resumeId}}",
+      "jobPostingIds": [
+        "{{jobPostingId}}"
+      ],
+      "title": "Interview prep for Senior Engineer role"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "resumeId": {
+          "type": "string",
+          "example": "123e4567-e89b-12d3-a456-426614174000",
+          "format": "uuid"
+        },
+        "jobPostingIds": {
+          "type": "array",
+          "example": [
+            "123e4567-e89b-12d3-a456-426614174001"
+          ],
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "title": {
+          "type": "string",
+          "example": "Interview prep for Senior Engineer role"
+        }
+      },
+      "required": [
+        "resumeId",
+        "jobPostingIds"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      const json = pm.response.json();
+      if (json && json.id) {
+        pm.environment.set('conversationId', json.id);
+        console.log('conversationId set to', json.id);
+      }
+settings: {}
+examples: ./.resources/Create a new conversation.resources/examples
+order: 2000

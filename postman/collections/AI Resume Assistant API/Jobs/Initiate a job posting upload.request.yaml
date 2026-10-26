@@ -1,0 +1,59 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/jobs"
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+  - key: Cookie
+    value: 'better-auth.session_token={{sessionToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "fileName": "my-resume.pdf",
+      "contentType": "application/pdf",
+      "fileSize": 204800
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "fileName": {
+          "type": "string",
+          "minLength": 1,
+          "example": "my-resume.pdf"
+        },
+        "contentType": {
+          "type": "string",
+          "minLength": 1,
+          "example": "application/pdf"
+        },
+        "fileSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10485760,
+          "example": 204800,
+          "description": "File size in bytes (max 10 MB)"
+        }
+      },
+      "required": [
+        "fileName",
+        "contentType",
+        "fileSize"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      const json = pm.response.json();
+      if (json && json.id) {
+        pm.environment.set('jobPostingId', json.id);
+        console.log('jobPostingId set to', json.id);
+      }
+settings: {}
+examples: ./.resources/Initiate a job posting upload.resources/examples
+order: 2000

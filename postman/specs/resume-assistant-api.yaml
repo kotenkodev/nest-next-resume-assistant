@@ -1,0 +1,888 @@
+openapi: 3.0.3
+info:
+  title: Resume Assistant API
+  description: NestJS AI Resume Assistant API with cookie-based session authentication.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001/api
+    description: Local development server
+
+tags:
+  - name: Auth
+    description: Authentication endpoints (better-auth)
+  - name: Resumes
+    description: Resume management endpoints
+  - name: Jobs
+    description: Job posting management endpoints
+  - name: Analysis
+    description: Fit analysis endpoints
+  - name: Chat
+    description: Conversation and messaging endpoints
+
+paths:
+  /auth/sign-in/email:
+    post:
+      tags:
+        - Auth
+      summary: Sign in with email and password
+      operationId: signInEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: secret123
+      responses:
+        '200':
+          description: Successfully signed in. Session cookie is set.
+          headers:
+            Set-Cookie:
+              description: Session cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+        '401':
+          description: Invalid credentials
+
+  /auth/sign-up/email:
+    post:
+      tags:
+        - Auth
+      summary: Sign up with email and password
+      operationId: signUpEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: secret123
+                name:
+                  type: string
+                  example: John Doe
+      responses:
+        '200':
+          description: Successfully signed up. Session cookie is set.
+          headers:
+            Set-Cookie:
+              description: Session cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+        '400':
+          description: Validation error or email already in use
+
+  /auth/sign-out:
+    post:
+      tags:
+        - Auth
+      summary: Sign out and clear session cookie
+      operationId: signOut
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Successfully signed out. Session cookie cleared.
+
+  /resumes:
+    get:
+      tags:
+        - Resumes
+      summary: List all resumes for the authenticated user
+      operationId: listResumes
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Array of Resume objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Resume'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Resumes
+      summary: Initiate a resume upload
+      operationId: initiateResumeUpload
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileUploadDto'
+      responses:
+        '201':
+          description: Upload initiated. Returns the resume ID and a pre-signed upload URL.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  uploadUrl:
+                    type: string
+                    format: uri
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /resumes/{id}:
+    get:
+      tags:
+        - Resumes
+      summary: Get a single resume by UUID
+      operationId: getResume
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UuidPathParam'
+      responses:
+        '200':
+          description: Resume object or null
+          content:
+            application/json:
+              schema:
+                nullable: true
+                oneOf:
+                  - $ref: '#/components/schemas/Resume'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Resumes
+      summary: Delete a resume by UUID
+      operationId: deleteResume
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UuidPathParam'
+      responses:
+        '204':
+          description: Resume deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /resumes/{id}/complete:
+    post:
+      tags:
+        - Resumes
+      summary: Complete the upload and trigger processing
+      operationId: completeResumeUpload
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UuidPathParam'
+      responses:
+        '200':
+          description: Upload completed and processing triggered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  processingJobId:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /jobs:
+    get:
+      tags:
+        - Jobs
+      summary: List all job postings for the authenticated user
+      operationId: listJobPostings
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Array of JobPosting objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobPosting'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Jobs
+      summary: Initiate a job posting upload
+      operationId: initiateJobPostingUpload
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileUploadDto'
+      responses:
+        '201':
+          description: Upload initiated. Returns the job posting ID and a pre-signed upload URL.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  uploadUrl:
+                    type: string
+                    format: uri
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /jobs/{id}:
+    get:
+      tags:
+        - Jobs
+      summary: Get a single job posting by UUID
+      operationId: getJobPosting
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UuidPathParam'
+      responses:
+        '200':
+          description: JobPosting object or null
+          content:
+            application/json:
+              schema:
+                nullable: true
+                oneOf:
+                  - $ref: '#/components/schemas/JobPosting'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Jobs
+      summary: Delete a job posting by UUID
+      operationId: deleteJobPosting
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UuidPathParam'
+      responses:
+        '204':
+          description: Job posting deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /jobs/{id}/complete:
+    post:
+      tags:
+        - Jobs
+      summary: Complete the upload and trigger processing
+      operationId: completeJobPostingUpload
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UuidPathParam'
+      responses:
+        '200':
+          description: Upload completed and processing triggered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  processingJobId:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /analysis:
+    post:
+      tags:
+        - Analysis
+      summary: Run a fit analysis between a resume and job posting
+      operationId: runAnalysis
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunAnalysisDto'
+      responses:
+        '201':
+          description: FitAnalysis result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FitAnalysis'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      tags:
+        - Analysis
+      summary: Get analysis for a resume and job posting pair
+      operationId: getAnalysis
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: resumeId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of the resume
+        - name: jobPostingId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of the job posting
+      responses:
+        '200':
+          description: FitAnalysis object or null
+          content:
+            application/json:
+              schema:
+                nullable: true
+                oneOf:
+                  - $ref: '#/components/schemas/FitAnalysis'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /analysis/resume/{resumeId}:
+    get:
+      tags:
+        - Analysis
+      summary: Get all analyses for a resume
+      operationId: getAnalysesByResume
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: resumeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of the resume
+      responses:
+        '200':
+          description: Array of FitAnalysis objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FitAnalysis'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /chat/conversations:
+    get:
+      tags:
+        - Chat
+      summary: List all conversations
+      operationId: listConversations
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Array of Conversation objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Conversation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Chat
+      summary: Create a new conversation
+      operationId: createConversation
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConversationDto'
+      responses:
+        '201':
+          description: Created Conversation object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /chat/conversations/{id}:
+    get:
+      tags:
+        - Chat
+      summary: Get a conversation by UUID
+      operationId: getConversation
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UuidPathParam'
+      responses:
+        '200':
+          description: Conversation object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Chat
+      summary: Delete a conversation
+      operationId: deleteConversation
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UuidPathParam'
+      responses:
+        '204':
+          description: Conversation deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /chat/conversations/{id}/messages:
+    post:
+      tags:
+        - Chat
+      summary: Send a message (non-streaming)
+      operationId: sendMessage
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UuidPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageDto'
+      responses:
+        '201':
+          description: User and assistant messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userMessage:
+                    $ref: '#/components/schemas/ChatMessage'
+                  assistantMessage:
+                    $ref: '#/components/schemas/ChatMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /chat/conversations/{id}/messages/stream:
+    post:
+      tags:
+        - Chat
+      summary: Send a message with SSE streaming
+      operationId: sendMessageStream
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UuidPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageDto'
+      responses:
+        '200':
+          description: >-
+            Server-Sent Events stream. Each event is `data: {"content": "..."}`.
+            Stream ends with `data: [DONE]`.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: |-
+                  data: {"content": "Hello"}
+
+                  data: {"content": " world"}
+
+                  data: [DONE]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: better-auth.session_token
+      description: Cookie-based session managed by better-auth
+
+  parameters:
+    UuidPathParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: UUID of the resource
+
+  responses:
+    Unauthorized:
+      description: Authentication required or session expired
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    BadRequest:
+      description: Validation error or bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 400
+        message:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        error:
+          type: string
+
+    FileUploadDto:
+      type: object
+      required:
+        - fileName
+        - contentType
+        - fileSize
+      properties:
+        fileName:
+          type: string
+          minLength: 1
+          example: my-resume.pdf
+        contentType:
+          type: string
+          minLength: 1
+          example: application/pdf
+        fileSize:
+          type: integer
+          minimum: 1
+          maximum: 10485760
+          example: 204800
+          description: File size in bytes (max 10 MB)
+
+    RunAnalysisDto:
+      type: object
+      required:
+        - resumeId
+        - jobPostingId
+      properties:
+        resumeId:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        jobPostingId:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174001
+
+    CreateConversationDto:
+      type: object
+      required:
+        - resumeId
+        - jobPostingIds
+      properties:
+        resumeId:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        jobPostingIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uuid
+          example:
+            - 123e4567-e89b-12d3-a456-426614174001
+        title:
+          type: string
+          nullable: true
+          example: Interview prep for Senior Engineer role
+
+    SendMessageDto:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          example: What are the key skills I should highlight?
+
+    Resume:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        title:
+          type: string
+          nullable: true
+        fileName:
+          type: string
+        fileSize:
+          type: integer
+        s3Key:
+          type: string
+        contentType:
+          type: string
+        status:
+          type: string
+          enum:
+            - PENDING_UPLOAD
+            - PROCESSING
+            - READY
+            - FAILED
+        rawText:
+          type: string
+          nullable: true
+        parsedProfile:
+          type: object
+          nullable: true
+          description: Parsed resume data
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    JobPosting:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        fileName:
+          type: string
+        fileSize:
+          type: integer
+        s3Key:
+          type: string
+        contentType:
+          type: string
+        status:
+          type: string
+          enum:
+            - PENDING_UPLOAD
+            - PROCESSING
+            - READY
+            - FAILED
+        rawText:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    FitAnalysis:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        resumeId:
+          type: string
+          format: uuid
+        jobPostingId:
+          type: string
+          format: uuid
+        matchScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 82
+        skillGaps:
+          type: object
+          description: Skill gap analysis data
+        experienceAlignment:
+          type: object
+          description: Experience alignment analysis data
+        interviewPrep:
+          type: object
+          description: Interview preparation suggestions
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        resumeId:
+          type: string
+          format: uuid
+        jobPostingIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        title:
+          type: string
+          nullable: true
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        conversationId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum:
+            - user
+            - assistant
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time

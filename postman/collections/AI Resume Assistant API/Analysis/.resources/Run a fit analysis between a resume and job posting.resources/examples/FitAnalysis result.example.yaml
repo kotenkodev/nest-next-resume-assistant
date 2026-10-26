@@ -1,0 +1,87 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/analysis"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: better-auth.session_token
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: json
+    content: |-
+      {
+        "resumeId": "123e4567-e89b-12d3-a456-426614174000",
+        "jobPostingId": "123e4567-e89b-12d3-a456-426614174001"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "a3e8993c-479c-a75e-2a06-248c26d66f91",
+        "userId": "string",
+        "resumeId": "bd914f71-b911-1d75-f2da-fb2cfa1dfa04",
+        "jobPostingId": "621dcdaf-25b8-3fb3-5eea-9f2e32b9d66f",
+        "matchScore": 82,
+        "skillGaps": {},
+        "experienceAlignment": {},
+        "interviewPrep": {},
+        "createdAt": "1990-12-25T16:24:35.179Z",
+        "updatedAt": "1997-08-04T17:29:13.660Z"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "resumeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "jobPostingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "matchScore": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "example": 82
+          },
+          "skillGaps": {
+            "type": "object",
+            "description": "Skill gap analysis data"
+          },
+          "experienceAlignment": {
+            "type": "object",
+            "description": "Experience alignment analysis data"
+          },
+          "interviewPrep": {
+            "type": "object",
+            "description": "Interview preparation suggestions"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+order: 1000

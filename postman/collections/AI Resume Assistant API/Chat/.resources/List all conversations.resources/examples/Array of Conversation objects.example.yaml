@@ -1,0 +1,148 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/chat/conversations"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: better-auth.session_token
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "09ddc9fc-3027-ef43-1aa1-395779a90f89",
+          "userId": "string",
+          "resumeId": "4320aec1-2421-7b15-bf12-c056daac61d2",
+          "jobPostingIds": [
+            "baf2d42a-f98d-55d6-0990-93e43645afb1",
+            "05a51f62-2db1-176d-7cd6-9a69834b631b"
+          ],
+          "title": "string",
+          "messages": [
+            {
+              "id": "a4f2b74e-5b9e-1840-a9b7-4a9167f7331b",
+              "conversationId": "fe8192b0-7b1c-e9a1-1737-7bc3fb980eff",
+              "role": "assistant",
+              "content": "string",
+              "createdAt": "2001-03-18T07:50:15.479Z"
+            },
+            {
+              "id": "61991eff-ff95-35a4-6fa6-539fda3c865a",
+              "conversationId": "ad0e0955-cfc1-d2f1-e336-d08f9f84c785",
+              "role": "assistant",
+              "content": "string",
+              "createdAt": "1987-01-31T23:30:48.161Z"
+            }
+          ],
+          "createdAt": "1997-10-24T00:07:32.856Z",
+          "updatedAt": "1955-09-11T17:45:43.516Z"
+        },
+        {
+          "id": "7ff287be-7eb9-9557-3dce-6700d0ed6a28",
+          "userId": "string",
+          "resumeId": "5a527de0-ed23-8738-149c-d87486dc4c7e",
+          "jobPostingIds": [
+            "1533d6c9-6bee-90a5-ec6c-6ddb16c06f77",
+            "40faeb87-c000-227f-dfe0-97123db5fcf7"
+          ],
+          "title": "string",
+          "messages": [
+            {
+              "id": "ceedd1aa-34a5-fcf1-6f2b-546f336a06eb",
+              "conversationId": "fa374517-3d11-f30a-0fe7-502590137604",
+              "role": "user",
+              "content": "string",
+              "createdAt": "2012-05-02T18:56:17.003Z"
+            },
+            {
+              "id": "44d6c0a6-dc66-c47e-7667-ecdc26df1ed4",
+              "conversationId": "b09486dc-0ab0-9f91-ac4b-e510cef52e0c",
+              "role": "assistant",
+              "content": "string",
+              "createdAt": "1955-11-22T07:23:30.890Z"
+            }
+          ],
+          "createdAt": "1991-08-11T16:36:02.666Z",
+          "updatedAt": "1984-09-10T04:22:29.166Z"
+        }
+      ]
+    $type: |-
+      {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "userId": {
+              "type": "string"
+            },
+            "resumeId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "jobPostingIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "title": {
+              "type": "string"
+            },
+            "messages": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "conversationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "assistant"
+                    ]
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      }
+order: 1000

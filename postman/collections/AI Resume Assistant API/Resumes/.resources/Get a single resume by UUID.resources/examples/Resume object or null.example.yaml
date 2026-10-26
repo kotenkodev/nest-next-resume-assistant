@@ -1,0 +1,97 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/resumes/:id"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: better-auth.session_token
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  pathVariables:
+    - key: id
+      value: 321e34d9-bf03-b928-9b89-9654ad15f5fa
+      disabled: false
+      description: UUID of the resource
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "4108fa76-4d2c-4892-3140-674927e5a360",
+        "userId": "string",
+        "title": "string",
+        "fileName": "string",
+        "fileSize": 3727,
+        "s3Key": "string",
+        "contentType": "string",
+        "status": "READY",
+        "rawText": "string",
+        "parsedProfile": {},
+        "createdAt": "1960-08-09T13:44:26.906Z",
+        "updatedAt": "2008-09-27T10:18:13.704Z"
+      }
+    $type: |-
+      {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "userId": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "fileName": {
+                "type": "string"
+              },
+              "fileSize": {
+                "type": "integer"
+              },
+              "s3Key": {
+                "type": "string"
+              },
+              "contentType": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PENDING_UPLOAD",
+                  "PROCESSING",
+                  "READY",
+                  "FAILED"
+                ]
+              },
+              "rawText": {
+                "type": "string"
+              },
+              "parsedProfile": {
+                "type": "object",
+                "description": "Parsed resume data"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        ]
+      }
+order: 1000

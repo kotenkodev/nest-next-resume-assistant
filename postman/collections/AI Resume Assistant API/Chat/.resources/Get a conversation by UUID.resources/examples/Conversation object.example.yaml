@@ -1,0 +1,120 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/chat/conversations/:id"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: better-auth.session_token
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  pathVariables:
+    - key: id
+      value: 321e34d9-bf03-b928-9b89-9654ad15f5fa
+      disabled: false
+      description: UUID of the resource
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "f3784de3-9df7-c85a-6c14-4b57c5eed364",
+        "userId": "string",
+        "resumeId": "d9e0cb2f-1a31-a5b4-69da-68a641a571aa",
+        "jobPostingIds": [
+          "653e5029-0273-e55c-1a32-2f749211c44e",
+          "9139b1ee-03aa-d8c3-9021-76346ef03af4"
+        ],
+        "title": "string",
+        "messages": [
+          {
+            "id": "b41e6ac4-4a9f-2484-5fb1-30c2277e6656",
+            "conversationId": "35fcf2de-de54-3a30-c802-0f49f9fc0dab",
+            "role": "user",
+            "content": "string",
+            "createdAt": "1978-02-25T23:13:41.980Z"
+          },
+          {
+            "id": "a1d05448-4886-4d6c-36dc-6eb4c98b92a0",
+            "conversationId": "fe5c193c-7d1a-2509-04b5-cf0b8430245d",
+            "role": "user",
+            "content": "string",
+            "createdAt": "1962-01-07T07:13:26.225Z"
+          }
+        ],
+        "createdAt": "2023-09-20T23:18:01.066Z",
+        "updatedAt": "1955-01-23T19:58:50.285Z"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "resumeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "jobPostingIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "title": {
+            "type": "string"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "conversationId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "user",
+                    "assistant"
+                  ]
+                },
+                "content": {
+                  "type": "string"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+order: 1000

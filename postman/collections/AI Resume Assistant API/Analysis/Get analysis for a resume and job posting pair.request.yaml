@@ -1,0 +1,50 @@
+$kind: http-request
+description: ""
+url: '{{baseUrl}}/analysis'
+method: GET
+headers:
+  - key: Accept
+    value: application/json
+  - key: Cookie
+    value: 'better-auth.session_token={{sessionToken}}'
+queryParams:
+  - key: resumeId
+    value: '{{resumeId}}'
+    disabled: false
+    description: UUID of the resume
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+  - key: jobPostingId
+    value: '{{jobPostingId}}'
+    disabled: false
+    description: UUID of the job posting
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
+settings: {}
+examples: ./.resources/Get analysis for a resume and job posting pair.resources/examples
+order: 2000

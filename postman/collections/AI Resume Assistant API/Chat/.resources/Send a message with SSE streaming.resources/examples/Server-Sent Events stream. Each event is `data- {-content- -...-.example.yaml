@@ -1,0 +1,43 @@
+$kind: http-example
+name: 'Server-Sent Events stream. Each event is `data: {"content": "..."}`. Stream ends with `data: [DONE]`.'
+request:
+  url: "{{baseUrl}}/chat/conversations/:id/messages/stream"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: text/event-stream
+    - key: better-auth.session_token
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  pathVariables:
+    - key: id
+      value: 321e34d9-bf03-b928-9b89-9654ad15f5fa
+      disabled: false
+      description: UUID of the resource
+  body:
+    type: json
+    content: |-
+      {
+        "message": "What are the key skills I should highlight?"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: text/event-stream
+  body:
+    type: text
+    content: |-
+      data: {"content": "Hello"}
+
+      data: {"content": " world"}
+
+      data: [DONE]
+    $type: |-
+      {
+        "type": "string",
+        "example": "data: {\"content\": \"Hello\"}\n\ndata: {\"content\": \" world\"}\n\ndata: [DONE]"
+      }
+order: 1000
