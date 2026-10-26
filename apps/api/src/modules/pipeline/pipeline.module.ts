@@ -8,10 +8,11 @@ import { S3Module } from '../storage/s3.module';
 import { Resume } from '../resume/entities/resume.entity';
 import { PipelineWorker } from './pipeline.worker';
 import { AiModule } from '../ai/ai.module';
+import { JobPosting } from '../job-posting/entities/job-posting.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProcessingJob, JobStep, Resume]),
+    TypeOrmModule.forFeature([ProcessingJob, JobStep, Resume, JobPosting]),
     S3Module,
     AiModule,
   ],

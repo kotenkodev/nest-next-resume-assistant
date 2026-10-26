@@ -29,10 +29,10 @@ export class PipelineWorker implements OnApplicationBootstrap, OnModuleDestroy {
 
   private async runOnce(): Promise<void> {
     try {
-      await this.pipelineService.runNextResumeJob();
+      await this.pipelineService.runNextJob();
     } catch (error: unknown) {
       this.logger.error(
-        'Resume worker failed',
+        'Pipeline worker failed',
         error instanceof Error ? error.stack : String(error),
       );
     } finally {

@@ -1,60 +1,78 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, In, ObjectType, Repository } from 'typeorm';
 import { Resume } from '../resume/entities/resume.entity';
 import { S3Service } from '../storage/s3.service';
 import { PdfExtractionService } from './pdf-extraction.service';
 import { ProcessingJob } from './entities/processing-job.entity';
 import { AiService } from '../ai/ai.service';
+import { JobPosting } from '../job-posting/entities/job-posting.entity';
 
 @Injectable()
 export class PipelineService {
   constructor(
     @InjectRepository(Resume)
     private readonly resumeRepository: Repository<Resume>,
+    @InjectRepository(JobPosting)
+    private readonly jobPostingRepository: Repository<JobPosting>,
+    private readonly dataSource: DataSource,
     private readonly s3Service: S3Service,
     private readonly pdfExtractionService: PdfExtractionService,
     private readonly aiService: AiService,
   ) {}
 
-  async extractResumeText(userId: string, resumeId: string): Promise<string> {
-    const resume = await this.resumeRepository.findOne({
-      where: { id: resumeId, userId },
+  async extractDocumentText<
+    T extends {
+      contentType: string;
+      s3Key: string;
+      fileSize: number;
+      rawText: string | null;
+    },
+  >(
+    repository: Repository<T>,
+    userId: string,
+    entityId: string,
+    entityName: string,
+  ): Promise<string> {
+    const entity = await repository.findOne({
+      where: { id: entityId, userId } as any,
     });
 
-    if (!resume) {
-      throw new NotFoundException('Resume not found');
+    if (!entity) {
+      throw new NotFoundException(`${entityName} not found`);
     }
 
-    if (resume.contentType !== 'application/pdf') {
+    if (entity.contentType !== 'application/pdf') {
       throw new Error('Only PDF extraction is currently supported');
     }
 
-    const bytes = await this.s3Service.getObjectBytes(resume.s3Key);
+    const bytes = await this.s3Service.getObjectBytes(entity.s3Key);
 
-    if (bytes.byteLength !== resume.fileSize) {
+    if (bytes.byteLength !== entity.fileSize) {
       throw new Error('Downloaded file size does not match');
     }
 
     const rawText = await this.pdfExtractionService.extractText(bytes);
 
-    const result = await this.resumeRepository.update(
-      { id: resumeId, userId },
-      { rawText },
+    const result = await repository.update(
+      { id: entityId, userId } as any,
+      { rawText } as any,
     );
 
     if (result.affected !== 1) {
-      throw new NotFoundException('Resume was deleted during processing');
+      throw new NotFoundException(
+        `${entityName} was deleted during processing`,
+      );
     }
 
     return rawText;
   }
 
-  async claimNextResumeJob(): Promise<ProcessingJob | null> {
-    return this.resumeRepository.manager.transaction(async (manager) => {
+  async claimNextJob(): Promise<ProcessingJob | null> {
+    return this.dataSource.transaction(async (manager) => {
       const job = await manager.findOne(ProcessingJob, {
         where: {
-          type: 'RESUME_PROCESSING',
+          type: In(['RESUME_PROCESSING', 'JOB_PROCESSING']),
           status: 'PENDING',
         },
         order: {
@@ -76,27 +94,24 @@ export class PipelineService {
     });
   }
 
-  async runNextResumeJob(): Promise<boolean> {
-    const job = await this.claimNextResumeJob();
-
-    if (!job) {
-      return false;
-    }
-
+  private async processResumeJob(job: ProcessingJob): Promise<void> {
     try {
-      const resumeId = job.targetId;
-
-      if (!resumeId) {
+      if (!job.targetId) {
         throw new Error('Processing job has no target resume');
       }
 
-      const rawText = await this.extractResumeText(job.userId, resumeId);
+      const rawText = await this.extractDocumentText(
+        this.resumeRepository,
+        job.userId,
+        job.targetId,
+        'Resume',
+      );
       const parsedProfile = await this.aiService.parseResume(rawText);
 
       await this.resumeRepository.manager.transaction(async (manager) => {
         const result = await manager.update(
           Resume,
-          { id: resumeId, userId: job.userId },
+          { id: job.targetId, userId: job.userId },
           { status: 'READY', parsedProfile },
         );
 
@@ -111,26 +126,90 @@ export class PipelineService {
         );
       });
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Resume processing failed';
+      await this.handleJobFailure(job, error, Resume);
+    }
+  }
 
-      await this.resumeRepository.manager.transaction(async (manager) => {
+  private async processJobPostingJob(job: ProcessingJob): Promise<void> {
+    try {
+      if (!job.targetId) {
+        throw new Error('Processing job has no target job posting');
+      }
+
+      const rawText = await this.extractDocumentText(
+        this.jobPostingRepository,
+        job.userId,
+        job.targetId,
+        'JobPosting',
+      );
+      const parsedData = await this.aiService.parseJobPosting(rawText);
+
+      await this.jobPostingRepository.manager.transaction(async (manager) => {
+        const result = await manager.update(
+          JobPosting,
+          { id: job.targetId, userId: job.userId },
+          { status: 'READY', parsedData },
+        );
+
+        if (result.affected !== 1) {
+          throw new Error('Job posting was deleted during processing');
+        }
+
         await manager.update(
           ProcessingJob,
           { id: job.id },
-          { status: 'FAILED', errorMessage },
+          { status: 'COMPLETED' },
         );
-
-        if (job.targetId) {
-          await manager.update(
-            Resume,
-            { id: job.targetId, userId: job.userId },
-            { status: 'FAILED' },
-          );
-        }
       });
+    } catch (error: unknown) {
+      await this.handleJobFailure(job, error, JobPosting);
+    }
+  }
+
+  async runNextJob(): Promise<boolean> {
+    const job = await this.claimNextJob();
+
+    if (!job) {
+      return false;
+    }
+
+    if (job.type === 'RESUME_PROCESSING') {
+      await this.processResumeJob(job);
+    } else if (job.type === 'JOB_PROCESSING') {
+      await this.processJobPostingJob(job);
+    } else {
+      await this.handleJobFailure(
+        job,
+        new Error(`Unknown job type: ${job.type}`),
+        null,
+      );
     }
 
     return true;
+  }
+
+  private async handleJobFailure(
+    job: ProcessingJob,
+    error: unknown,
+    EntityType: ObjectType<Resume> | ObjectType<JobPosting> | null,
+  ): Promise<void> {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Processing failed';
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager.update(
+        ProcessingJob,
+        { id: job.id },
+        { status: 'FAILED', errorMessage },
+      );
+
+      if (job.targetId && EntityType) {
+        await manager.update(
+          EntityType,
+          { id: job.targetId, userId: job.userId },
+          { status: 'FAILED' },
+        );
+      }
+    });
   }
 }
