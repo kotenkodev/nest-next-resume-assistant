@@ -11,35 +11,11 @@ import {
 import { User } from '../../auth/entities/user.entity';
 import { Resume } from '../../resume/entities/resume.entity';
 import { JobPosting } from '../../job-posting/entities/job-posting.entity';
-
-export interface SkillGapResult {
-  matchedSkills: string[];
-  missingRequired: string[];
-  missingPreferred: string[];
-}
-
-export interface ExperienceAlignmentResult {
-  score: number;
-  strengths: string[];
-  concerns: string[];
-  mapping: Array<{
-    jobRequirement: string;
-    matchingExperience: string;
-    fitLevel: 'HIGH' | 'MEDIUM' | 'LOW';
-  }>;
-}
-
-export interface InterviewPrepResult {
-  technicalQuestions: Array<{
-    question: string;
-    targetGap: string;
-    talkingPoints: string[];
-  }>;
-  behavioralQuestions: Array<{
-    question: string;
-    starGuidance: string;
-  }>;
-}
+import {
+  ExperienceAlignmentResult,
+  InterviewPrepResult,
+  SkillGapResult,
+} from '../schemas/fit-analysis-data.schema';
 
 @Entity('fit_analysis')
 @Index(['resumeId', 'jobPostingId'], { unique: true })
@@ -86,4 +62,3 @@ export class FitAnalysis {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 }
-
