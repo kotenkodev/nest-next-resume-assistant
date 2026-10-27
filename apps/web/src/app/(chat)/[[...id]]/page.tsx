@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { Chat } from '@/components/Chat';
 import FitAnalysisView from '@/components/FitAnalysisView';
 import JobMatchesView from '@/components/JobMatchesView';
@@ -16,6 +17,12 @@ interface PageProps {
 
 export default async function Home({ params }: PageProps) {
   const resolvedParams = await params;
+
+  // Multiple route segments (e.g. /chat/foo/bar) are invalid; route to notFound -> /
+  if (resolvedParams.id && resolvedParams.id.length > 1) {
+    notFound();
+  }
+
   const conversationId = resolvedParams.id?.[0];
 
   // 1. If NO conversation is active, show the Welcome / Empty state
