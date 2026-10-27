@@ -1,12 +1,12 @@
 $kind: http-request
 description: Sign out and invalidate the session. Postman applies the expired cookies returned by the server.
-url: "{{baseUrl}}/auth/sign-out"
+url: '{{baseUrl}}/auth/sign-out'
 method: POST
 headers:
-  Origin: "{{originUrl}}"
+  Origin: '{{originUrl}}'
 body:
   type: text
-  content: ""
+  content: ''
 scripts:
   - type: afterResponse
     code: |-

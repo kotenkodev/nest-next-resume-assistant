@@ -15,10 +15,15 @@ export class Verification {
   @Column('timestamptz', { name: 'expiresAt' })
   expiresAt!: Date;
 
-  @Column('timestamptz', { name: 'createdAt', default: () => 'CURRENT_TIMESTAMP' })
+  @Column('timestamptz', {
+    name: 'createdAt',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt!: Date;
 
-  @Column('timestamptz', { name: 'updatedAt', default: () => 'CURRENT_TIMESTAMP' })
+  @Column('timestamptz', {
+    name: 'updatedAt',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   updatedAt!: Date;
-
 }

@@ -10,4 +10,3 @@ export class UpdateConversationDto {
   @IsString()
   title?: string;
 }
-

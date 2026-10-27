@@ -7,10 +7,6 @@ export interface HealthResponse {
   app: string;
 }
 
-// ---------------------------------------------------------------------------
-// Document & Ingestion
-// ---------------------------------------------------------------------------
-
 export type DocumentStatus =
   'PENDING_UPLOAD' | 'PROCESSING' | 'READY' | 'FAILED';
 
@@ -24,10 +20,6 @@ export interface UploadInitiationResponse {
   id: string;
   uploadUrl: string;
 }
-
-// ---------------------------------------------------------------------------
-// Resume & Profile Schemas
-// ---------------------------------------------------------------------------
 
 export const parsedProfileSchema = z.object({
   name: z.string().nullable(),
@@ -61,10 +53,6 @@ export const parsedProfileSchema = z.object({
 export type ParsedProfile = z.infer<typeof parsedProfileSchema>;
 export const jsonParsedProfileSchema = z.toJSONSchema(parsedProfileSchema);
 
-// ---------------------------------------------------------------------------
-// Job Posting Schemas
-// ---------------------------------------------------------------------------
-
 export const parsedJobRequirementsSchema = z.object({
   role: z.string().nullable(),
   level: z.string().nullable(),
@@ -78,10 +66,6 @@ export type ParsedJobRequirements = z.infer<typeof parsedJobRequirementsSchema>;
 export const jsonParsedJobRequirementsSchema = z.toJSONSchema(
   parsedJobRequirementsSchema,
 );
-
-// ---------------------------------------------------------------------------
-// Fit Analysis Schemas & Contracts
-// ---------------------------------------------------------------------------
 
 export const skillGapResultSchema = z.object({
   matchedSkills: z.array(z.string()),
@@ -134,10 +118,6 @@ export const jsonFitAnalysisOutputSchema = z.toJSONSchema(
   fitAnalysisOutputSchema,
 );
 
-// ---------------------------------------------------------------------------
-// Chat & Conversation Contracts
-// ---------------------------------------------------------------------------
-
 export interface CreateConversationPayload {
   resumeId: string;
   jobPostingIds: string[];
@@ -171,10 +151,6 @@ export interface StreamChatChunk {
   content?: string;
   error?: string;
 }
-
-// ---------------------------------------------------------------------------
-// Semantic Matching Contract
-// ---------------------------------------------------------------------------
 
 export interface JobMatchResult<TJob = unknown> {
   job: TJob;

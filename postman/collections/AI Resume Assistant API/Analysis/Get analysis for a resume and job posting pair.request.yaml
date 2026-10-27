@@ -1,5 +1,5 @@
 $kind: http-request
-description: ""
+description: ''
 url: '{{baseUrl}}/analysis'
 method: GET
 headers:
@@ -42,7 +42,7 @@ queryParams:
       }
 body:
   type: text
-  content: ""
+  content: ''
 settings: {}
 scripts:
   - type: afterResponse

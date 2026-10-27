@@ -1,6 +1,6 @@
 $kind: http-request
-description: ""
-url: "{{baseUrl}}/jobs/:id"
+description: ''
+url: '{{baseUrl}}/jobs/:id'
 method: DELETE
 headers:
   - key: Accept
@@ -25,7 +25,7 @@ pathVariables:
       }
 body:
   type: text
-  content: ""
+  content: ''
 scripts:
   - type: afterResponse
     language: text/javascript

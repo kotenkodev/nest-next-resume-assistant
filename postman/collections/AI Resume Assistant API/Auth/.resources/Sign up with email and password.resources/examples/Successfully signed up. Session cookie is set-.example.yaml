@@ -1,7 +1,7 @@
 $kind: http-example
 name: Successfully signed up. Session cookie is set.
 request:
-  url: "{{baseUrl}}/auth/sign-up/email"
+  url: '{{baseUrl}}/auth/sign-up/email'
   method: POST
   headers:
     Content-Type: application/json

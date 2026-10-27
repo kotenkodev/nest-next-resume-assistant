@@ -12,6 +12,10 @@
     "typecheck": "turbo run typecheck",
     "migration:generate": "pnpm --filter @repo/api build && pnpm --filter @repo/api exec typeorm migration:generate -d dist/database/data-source.js",
     "migration:run": "pnpm --filter @repo/api build && pnpm --filter @repo/api exec typeorm migration:run -d dist/database/data-source.js",
+    "docker:db": "docker compose up -d postgres minio minio-create-buckets",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

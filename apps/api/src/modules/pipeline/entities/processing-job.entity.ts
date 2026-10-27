@@ -53,4 +53,3 @@ export class ProcessingJob {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 }
-

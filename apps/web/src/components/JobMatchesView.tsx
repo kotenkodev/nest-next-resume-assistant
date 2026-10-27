@@ -47,7 +47,6 @@ export default function JobMatchesView({
     new Set(),
   );
 
-  // 1. Derive active conversation
   const { data: conversation } = useQuery({
     queryKey: ['conversation', conversationId],
     queryFn: () => chatApi.getConversation(conversationId!),
@@ -58,20 +57,17 @@ export default function JobMatchesView({
     return conversation?.jobPostingIds ?? selectedJobIds;
   }, [conversation?.jobPostingIds, selectedJobIds]);
 
-  // Mutation to persist job postings to conversation in DB
   const { mutate: updateConvoJobs } = useMutation({
     mutationFn: (newJobIds: string[]) =>
       chatApi.updateConversation(conversationId!, { jobPostingIds: newJobIds }),
     onSuccess: (updated) => {
-      queryClient.setQueryData(
-        ['conversation', conversationId],
-        (prev: any) =>
-          prev
-            ? {
-                ...prev,
-                jobPostingIds: updated.jobPostingIds,
-              }
-            : prev,
+      queryClient.setQueryData(['conversation', conversationId], (prev: any) =>
+        prev
+          ? {
+              ...prev,
+              jobPostingIds: updated.jobPostingIds,
+            }
+          : prev,
       );
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       queryClient.invalidateQueries({
@@ -89,10 +85,8 @@ export default function JobMatchesView({
       ? effectiveJobIds.filter((id) => id !== jobId)
       : [...effectiveJobIds, jobId];
 
-    // 1. Update client Zustand store
     setSelectedJobIds(nextJobIds);
 
-    // 2. Persist to active conversation in PostgreSQL if inside a conversation
     if (conversationId) {
       updateConvoJobs(nextJobIds);
     }
@@ -107,7 +101,6 @@ export default function JobMatchesView({
   const activeResumeId =
     propResumeId || conversation?.resumeId || storeResumeId;
 
-  // 2. Fetch active resume details
   const { data: resume, isLoading: isResumeLoading } = useQuery({
     queryKey: ['resume', activeResumeId],
     queryFn: () => resumesApi.get(activeResumeId!),
@@ -120,14 +113,12 @@ export default function JobMatchesView({
     },
   });
 
-  // 3. Fallback list of resumes if none is selected
   const { data: allResumes } = useQuery({
     queryKey: ['resumes'],
     queryFn: () => resumesApi.list(),
     enabled: !activeResumeId,
   });
 
-  // 4. Fetch semantic matches
   const {
     data: matches,
     isLoading: isMatchesLoading,
@@ -141,7 +132,6 @@ export default function JobMatchesView({
     enabled: !!activeResumeId && resume?.status === 'READY',
   });
 
-  // Candidate skills set for instant matching highlight
   const candidateSkills = React.useMemo(() => {
     const set = new Set<string>();
     if (!resume?.parsedProfile?.skills) return set;
@@ -162,9 +152,6 @@ export default function JobMatchesView({
     });
   };
 
-  // ---------------------------------------------------------------------------
-  // Empty State: No Resume Selected
-  // ---------------------------------------------------------------------------
   if (!activeResumeId) {
     const readyResumes = allResumes?.filter((r) => r.status === 'READY') || [];
 
@@ -217,9 +204,6 @@ export default function JobMatchesView({
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Resume Processing State
-  // ---------------------------------------------------------------------------
   if (isResumeLoading || resume?.status === 'PROCESSING') {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center p-8 text-center max-w-md mx-auto">
@@ -375,7 +359,6 @@ export default function JobMatchesView({
             const preferredSkills = job.parsedData?.preferredSkills || [];
             const responsibilities = job.parsedData?.responsibilities || [];
 
-            // Tier styling based on similarity
             const isHighFit = percentage >= 75;
             const isMediumFit = percentage >= 50 && percentage < 75;
 

@@ -1,13 +1,13 @@
 $kind: http-example
 request:
-  url: "{{baseUrl}}/resumes/:id"
+  url: '{{baseUrl}}/resumes/:id'
   method: DELETE
   headers:
     - key: Accept
       value: application/json
     - key: better-auth.session_token
       value: <API Key>
-      description: "Added as a part of security scheme: apikey"
+      description: 'Added as a part of security scheme: apikey'
   pathVariables:
     - key: id
       value: 321e34d9-bf03-b928-9b89-9654ad15f5fa
@@ -15,7 +15,7 @@ request:
       description: UUID of the resource
   body:
     type: text
-    content: ""
+    content: ''
 response:
   statusCode: 404
   statusText: Not Found

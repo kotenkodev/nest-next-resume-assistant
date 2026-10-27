@@ -1,6 +1,6 @@
 $kind: http-request
-description: ""
-url: "{{baseUrl}}/chat/conversations"
+description: ''
+url: '{{baseUrl}}/chat'
 method: POST
 headers:
   - key: Content-Type

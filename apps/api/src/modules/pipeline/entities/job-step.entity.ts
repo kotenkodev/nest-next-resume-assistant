@@ -59,4 +59,3 @@ export class JobStep {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 }
-

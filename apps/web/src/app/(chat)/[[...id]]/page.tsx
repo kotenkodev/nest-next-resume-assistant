@@ -18,14 +18,12 @@ interface PageProps {
 export default async function Home({ params }: PageProps) {
   const resolvedParams = await params;
 
-  // Multiple route segments (e.g. /chat/foo/bar) are invalid; route to notFound -> /
   if (resolvedParams.id && resolvedParams.id.length > 1) {
     notFound();
   }
 
   const conversationId = resolvedParams.id?.[0];
 
-  // 1. If NO conversation is active, show the Welcome / Empty state
   if (!conversationId) {
     return (
       <div className="flex h-full w-full flex-1 flex-col items-center justify-center p-8 text-center max-w-2xl mx-auto">
@@ -70,7 +68,6 @@ export default async function Home({ params }: PageProps) {
     );
   }
 
-  // 2. When a conversation IS active, show the Tabs
   return (
     <div className="flex h-full w-full flex-1 min-h-0 flex-col overflow-hidden">
       <Tabs

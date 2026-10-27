@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: "{{baseUrl}}/chat/conversations/:id/messages/stream"
+  url: '{{baseUrl}}/chat/conversations/:id/messages/stream'
   method: POST
   headers:
     - key: Content-Type
@@ -9,7 +9,7 @@ request:
       value: application/json
     - key: better-auth.session_token
       value: <API Key>
-      description: "Added as a part of security scheme: apikey"
+      description: 'Added as a part of security scheme: apikey'
   pathVariables:
     - key: id
       value: 321e34d9-bf03-b928-9b89-9654ad15f5fa

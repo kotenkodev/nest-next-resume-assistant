@@ -1,7 +1,11 @@
 import { Controller, Get } from '@nestjs/common';
 import type { HealthResponse } from '@repo/shared';
 import { AppService } from './app.service';
-import { AllowAnonymous, Session, type UserSession } from '@thallesp/nestjs-better-auth';
+import {
+  AllowAnonymous,
+  Session,
+  type UserSession,
+} from '@thallesp/nestjs-better-auth';
 
 @Controller()
 export class AppController {

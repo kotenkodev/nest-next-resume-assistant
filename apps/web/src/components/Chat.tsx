@@ -55,7 +55,6 @@ export function Chat({ conversationId }: ChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // 1. Fetch conversation details & history
   const {
     data: conversation,
     isLoading: isConvoLoading,
@@ -66,14 +65,12 @@ export function Chat({ conversationId }: ChatProps) {
     enabled: !!conversationId,
   });
 
-  // 2. Fetch candidate resume info for context pill
   const { data: resume } = useQuery({
     queryKey: ['resume', conversation?.resumeId],
     queryFn: () => resumesApi.get(conversation!.resumeId),
     enabled: !!conversation?.resumeId,
   });
 
-  // 3. Fetch jobs for context pill
   const { data: allJobs } = useQuery({
     queryKey: ['jobs'],
     queryFn: () => jobsApi.list(),
@@ -86,14 +83,12 @@ export function Chat({ conversationId }: ChatProps) {
     return allJobs.filter((j) => idSet.has(j.id));
   }, [allJobs, conversation?.jobPostingIds]);
 
-  // Sync loaded messages into local state when conversation updates
   useEffect(() => {
     if (conversation?.messages && !isGenerating) {
       setMessages(conversation.messages);
     }
   }, [conversation?.messages, isGenerating]);
 
-  // Auto-scroll to bottom on message change
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
@@ -102,7 +97,6 @@ export function Chat({ conversationId }: ChatProps) {
     scrollToBottom(isGenerating ? 'auto' : 'smooth');
   }, [messages, isGenerating]);
 
-  // Handle stream send
   const handleSendMessage = async (textToSend: string) => {
     const trimmed = textToSend.trim();
     if (!trimmed || !conversationId || isGenerating) return;
@@ -219,7 +213,6 @@ export function Chat({ conversationId }: ChatProps) {
 
   return (
     <div className="flex h-full w-full flex-col min-h-0 bg-background overflow-hidden">
-      {/* 1. Header Bar */}
       <div className="flex items-center justify-between border-b px-6 py-2.5 bg-card/40 backdrop-blur shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -256,7 +249,6 @@ export function Chat({ conversationId }: ChatProps) {
         </Button>
       </div>
 
-      {/* 2. Messages Scroll Container */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-8 py-6 space-y-5">
         {isConvoLoading && messages.length === 0 ? (
           <div className="space-y-4 max-w-2xl mx-auto">
@@ -344,7 +336,6 @@ export function Chat({ conversationId }: ChatProps) {
                 );
               }
 
-              // Assistant message
               return (
                 <Message key={message.id} align="start">
                   <div className="flex gap-3 w-full">
@@ -386,7 +377,6 @@ export function Chat({ conversationId }: ChatProps) {
         )}
       </div>
 
-      {/* 3. Input Form */}
       <div className="p-4 sm:p-6 pt-2 border-t bg-card/20 shrink-0">
         <form
           onSubmit={(e) => {

@@ -21,12 +21,10 @@ export function Toaster({ ...props }: ToasterProps) {
             '!bg-popover !text-popover-foreground !border-destructive/30 [&>[data-icon]]:!text-destructive',
           warning:
             '!bg-popover !text-popover-foreground !border-warning/30 [&>[data-icon]]:!text-warning',
-          info:
-            '!bg-popover !text-popover-foreground !border-info/30 [&>[data-icon]]:!text-info',
+          info: '!bg-popover !text-popover-foreground !border-info/30 [&>[data-icon]]:!text-info',
         },
       }}
       {...props}
     />
   );
 }
-

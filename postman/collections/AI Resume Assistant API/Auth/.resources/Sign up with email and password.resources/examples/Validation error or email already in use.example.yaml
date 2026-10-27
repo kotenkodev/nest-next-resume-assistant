@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: "{{baseUrl}}/auth/sign-up/email"
+  url: '{{baseUrl}}/auth/sign-up/email'
   method: POST
   headers:
     Content-Type: application/json
@@ -17,5 +17,5 @@ response:
   statusText: Bad Request
   body:
     type: text
-    content: ""
+    content: ''
 order: 2000

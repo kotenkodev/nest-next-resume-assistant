@@ -1,13 +1,13 @@
 $kind: http-request
-description: ""
-url: "{{baseUrl}}/jobs"
+description: ''
+url: '{{baseUrl}}/jobs'
 method: GET
 headers:
   - key: Accept
     value: application/json
 body:
   type: text
-  content: ""
+  content: ''
 scripts:
   - type: afterResponse
     language: text/javascript

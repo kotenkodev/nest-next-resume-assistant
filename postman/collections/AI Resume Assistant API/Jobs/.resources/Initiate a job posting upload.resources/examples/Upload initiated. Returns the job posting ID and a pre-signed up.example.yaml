@@ -1,7 +1,7 @@
 $kind: http-example
 name: Upload initiated. Returns the job posting ID and a pre-signed upload URL.
 request:
-  url: "{{baseUrl}}/jobs"
+  url: '{{baseUrl}}/jobs'
   method: POST
   headers:
     - key: Content-Type
@@ -10,7 +10,7 @@ request:
       value: application/json
     - key: better-auth.session_token
       value: <API Key>
-      description: "Added as a part of security scheme: apikey"
+      description: 'Added as a part of security scheme: apikey'
   body:
     type: json
     content: |-

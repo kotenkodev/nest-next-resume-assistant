@@ -1,0 +1,70 @@
+$kind: http-request
+name: Update a conversation
+description: 'Update a conversation title and/or the list of selected job posting IDs.'
+url: '{{baseUrl}}/chat/:id'
+method: PATCH
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+pathVariables:
+  - key: id
+    value: '{{conversationId}}'
+    disabled: false
+    description: UUID of the conversation
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "jobPostingIds": [
+        "{{jobPostingId}}"
+      ],
+      "title": "Updated conversation title"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "jobPostingIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "example": [
+            "123e4567-e89b-12d3-a456-426614174001"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "example": "Updated conversation title"
+        }
+      }
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+      pm.test('Response has updated Conversation fields', () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property('id').that.equals(pm.environment.get('conversationId'));
+        pm.expect(json).to.have.property('jobPostingIds').that.is.an('array');
+        pm.expect(json).to.have.property('updatedAt');
+      });
+settings: {}
+order: 3500

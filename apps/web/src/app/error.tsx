@@ -28,7 +28,8 @@ export default function ErrorBoundary({ error, reset }: ErrorBoundaryProps) {
         </h2>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          {error.message || 'An unexpected error occurred while loading this page.'}
+          {error.message ||
+            'An unexpected error occurred while loading this page.'}
         </p>
 
         {error.digest && (
@@ -55,4 +56,3 @@ export default function ErrorBoundary({ error, reset }: ErrorBoundaryProps) {
     </div>
   );
 }
-

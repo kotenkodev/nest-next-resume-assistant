@@ -1,13 +1,13 @@
 $kind: http-example
 request:
-  url: "{{baseUrl}}/analysis?resumeId=321e34d9-bf03-b928-9b89-9654ad15f5fa&jobPostingId=321e34d9-bf03-b928-9b89-9654ad15f5fa"
+  url: '{{baseUrl}}/analysis?resumeId=321e34d9-bf03-b928-9b89-9654ad15f5fa&jobPostingId=321e34d9-bf03-b928-9b89-9654ad15f5fa'
   method: GET
   headers:
     - key: Accept
       value: application/json
     - key: better-auth.session_token
       value: <API Key>
-      description: "Added as a part of security scheme: apikey"
+      description: 'Added as a part of security scheme: apikey'
   queryParams:
     - key: resumeId
       value: 321e34d9-bf03-b928-9b89-9654ad15f5fa
@@ -19,7 +19,7 @@ request:
       description: UUID of the job posting
   body:
     type: text
-    content: ""
+    content: ''
 response:
   statusCode: 200
   statusText: OK

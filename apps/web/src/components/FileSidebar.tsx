@@ -79,10 +79,8 @@ export function FileSidebar({
     setSelectedResumeId,
     selectedJobIds,
     setSelectedJobIds,
-    toggleJobId,
   } = useWorkspaceStore();
 
-  // 1. Resumes Query with auto-polling while processing
   const {
     data: resumes,
     isLoading: isResumesLoading,
@@ -98,7 +96,6 @@ export function FileSidebar({
     },
   });
 
-  // 2. Jobs Query with auto-polling while processing
   const {
     data: jobs,
     isLoading: isJobsLoading,
@@ -139,19 +136,16 @@ export function FileSidebar({
     }
   };
 
-  // 3. Delete Resume Mutation
   const { mutate: deleteResume } = useMutation({
     mutationFn: resumesApi.delete,
     onSuccess: async (_, deletedId) => {
       if (selectedResumeId === deletedId) setSelectedResumeId(null);
       toast.success('Resume deleted');
 
-      // Check if active conversation belongs to this deleted resume
       if (currentConversationId) {
-        const activeConversation = queryClient.getQueryData<ConversationDetail>([
-          'conversation',
-          currentConversationId,
-        ]);
+        const activeConversation = queryClient.getQueryData<ConversationDetail>(
+          ['conversation', currentConversationId],
+        );
         if (activeConversation?.resumeId === deletedId) {
           router.push('/');
         }
@@ -169,7 +163,6 @@ export function FileSidebar({
     },
   });
 
-  // 4. Delete Job Mutation
   const { mutate: deleteJob } = useMutation({
     mutationFn: jobsApi.delete,
     onSuccess: async (_, deletedId) => {
@@ -254,7 +247,6 @@ export function FileSidebar({
                   const currentTitle =
                     resume.parsedProfile?.experience?.[0]?.title;
 
-                  // Top skills (languages + frameworks)
                   const skills = [
                     ...(resume.parsedProfile?.skills?.languages || []),
                     ...(resume.parsedProfile?.skills?.frameworks || []),
@@ -275,7 +267,7 @@ export function FileSidebar({
                           ? 'cursor-pointer hover:border-primary/40 bg-card hover:shadow-xs'
                           : 'opacity-70 cursor-not-allowed bg-muted/20 border-dashed',
                         isSelected
-                          ? 'border-primary ring-1 ring-primary/30 bg-primary/[0.03]'
+                          ? 'border-primary ring-1 ring-primary/30 bg-primary/3'
                           : 'border-border/80',
                       )}
                     >
@@ -411,7 +403,7 @@ export function FileSidebar({
                           ? 'cursor-pointer hover:border-primary/40 bg-card hover:shadow-xs'
                           : 'opacity-70 cursor-not-allowed bg-muted/20 border-dashed',
                         isSelected
-                          ? 'border-primary ring-1 ring-primary/30 bg-primary/[0.03]'
+                          ? 'border-primary ring-1 ring-primary/30 bg-primary/3'
                           : 'border-border/80',
                       )}
                     >

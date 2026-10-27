@@ -20,7 +20,8 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             Application Error
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            {error.message || 'A critical error occurred while rendering the application.'}
+            {error.message ||
+              'A critical error occurred while rendering the application.'}
           </p>
           {error.digest && (
             <div className="mt-3 rounded-md bg-muted px-2.5 py-1.5 font-mono text-xs text-muted-foreground select-all">
@@ -38,4 +39,3 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
     </html>
   );
 }
-

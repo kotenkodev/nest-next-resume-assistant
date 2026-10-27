@@ -49,4 +49,3 @@ export class CreateUser1792594926750 implements MigrationInterface {
     await queryRunner.dropTable('user');
   }
 }
-

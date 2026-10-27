@@ -75,11 +75,63 @@ flowchart TD
 
 - **Node.js**: `v22.0.0` or higher
 - **pnpm**: `v10.30.3` (`corepack enable pnpm`)
-- **PostgreSQL**: Version 15+ with the `pgvector` extension enabled (`CREATE EXTENSION IF NOT EXISTS vector;`)
-- **S3 Storage**: AWS S3, Neon S3, MinIO, or Cloudflare R2 bucket
-- **API Keys**: Groq API Key and Google Gemini API Key
+- **Docker & Docker Compose**: For local PostgreSQL + pgvector and MinIO S3 (recommended)
+- **API Keys**: Groq API Key and Google Gemini / Jina API Key
 
-### 1. Clone & Install
+---
+
+### Option A: Dockerized Setup (Recommended)
+
+You can run the entire system or only the backing infrastructure (PostgreSQL + pgvector + MinIO) using Docker Compose.
+
+#### 1. Configure Environment Variables
+
+Copy `.env.example` to `.env` in the repository root and provide your AI API keys:
+
+```bash
+cp .env.example .env
+```
+
+#### 2. Run Backing Infrastructure (DB + MinIO)
+
+If you want to develop with hot reload via `pnpm dev`, start PostgreSQL + pgvector and MinIO in the background:
+
+```bash
+pnpm docker:db
+# or: docker compose up -d postgres minio minio-create-buckets
+```
+
+- **PostgreSQL**: `localhost:5432` with `vector` and `uuid-ossp` extensions auto-initialized.
+- **MinIO S3 API**: `http://localhost:9000` (Access/Secret: `minioadmin` / `minioadmin`)
+- **MinIO Web Console**: `http://localhost:9001`
+
+Then apply migrations and start the dev servers:
+
+```bash
+pnpm migration:run
+pnpm dev
+```
+
+#### 3. Run the Full Stack with Docker
+
+To spin up all services (Database, MinIO, NestJS API, and Next.js Web) in containers:
+
+```bash
+pnpm docker:up
+# or: docker compose up --build -d
+```
+
+- **Web App**: `http://localhost:3000`
+- **NestJS API**: `http://localhost:3001/api`
+- **MinIO Console**: `http://localhost:9001`
+- **Logs**: `pnpm docker:logs`
+- **Stop**: `pnpm docker:down`
+
+---
+
+### Option B: Manual Host Setup
+
+#### 1. Clone & Install
 
 ```bash
 git clone <repo-url>
@@ -87,7 +139,7 @@ cd nest-next-resume-assistant
 pnpm install
 ```
 
-### 2. Configure Environment Variables
+#### 2. Configure Environment Variables
 
 Copy `.env.example` to `.env` in the repository root:
 
@@ -120,7 +172,7 @@ JINA_API_KEY=your_jina_api_key
 EMBEDDING_MODEL=gemini-embedding-001
 ```
 
-### 3. Run Database Migrations
+#### 3. Run Database Migrations
 
 Build the shared package and apply all TypeORM migrations:
 
@@ -128,7 +180,7 @@ Build the shared package and apply all TypeORM migrations:
 pnpm migration:run
 ```
 
-### 4. Start Development
+#### 4. Start Development
 
 Run all workspace apps in watch mode with Turbo:
 

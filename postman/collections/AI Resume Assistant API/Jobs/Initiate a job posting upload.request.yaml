@@ -1,6 +1,6 @@
 $kind: http-request
-description: ""
-url: "{{baseUrl}}/jobs"
+description: ''
+url: '{{baseUrl}}/jobs'
 method: POST
 headers:
   - key: Content-Type

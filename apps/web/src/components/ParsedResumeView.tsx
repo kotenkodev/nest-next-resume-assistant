@@ -35,16 +35,15 @@ export default function ParsedResumeView({
   const storeResumeId = useWorkspaceStore((state) => state.selectedResumeId);
   const [showRawText, setShowRawText] = React.useState(false);
 
-  // 1. Get conversation to derive active resumeId if needed
   const { data: conversation } = useQuery({
     queryKey: ['conversation', conversationId],
     queryFn: () => chatApi.getConversation(conversationId!),
     enabled: !!conversationId && !propResumeId,
   });
 
-  const activeResumeId = propResumeId || conversation?.resumeId || storeResumeId;
+  const activeResumeId =
+    propResumeId || conversation?.resumeId || storeResumeId;
 
-  // 2. Fetch the Resume data
   const {
     data: resume,
     isLoading,
@@ -55,7 +54,9 @@ export default function ParsedResumeView({
     enabled: !!activeResumeId,
     refetchInterval: (query) => {
       const status = query.state.data?.status;
-      return status === 'PROCESSING' || status === 'PENDING_UPLOAD' ? 2000 : false;
+      return status === 'PROCESSING' || status === 'PENDING_UPLOAD'
+        ? 2000
+        : false;
     },
   });
 
@@ -106,7 +107,8 @@ export default function ParsedResumeView({
         <p className="mt-1 text-xs text-muted-foreground">
           The background AI pipeline is extracting text, analyzing experience,
           and organizing structured skills for{' '}
-          <span className="font-medium text-foreground">{resume.fileName}</span>.
+          <span className="font-medium text-foreground">{resume.fileName}</span>
+          .
         </p>
       </div>
     );
@@ -126,11 +128,11 @@ export default function ParsedResumeView({
     );
   }
 
-  const { name, email, phone, summary, skills, experience, education } = profile;
+  const { name, email, phone, summary, skills, experience, education } =
+    profile;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
-      {/* 1. Header Card: Candidate Identity & Contact */}
       <div className="p-6 rounded-2xl bg-card border shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
@@ -150,7 +152,6 @@ export default function ParsedResumeView({
             </div>
           </div>
 
-          {/* Contact Details */}
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {email && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/60 border text-foreground">
@@ -171,7 +172,6 @@ export default function ParsedResumeView({
           </div>
         </div>
 
-        {/* Professional Summary */}
         {summary && (
           <div className="p-4 rounded-xl bg-muted/30 border border-border/60">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-primary mb-1.5">
@@ -185,7 +185,6 @@ export default function ParsedResumeView({
         )}
       </div>
 
-      {/* 2. Structured Skills Grid */}
       {skills && (
         <div className="p-6 rounded-2xl bg-card border shadow-xs space-y-4">
           <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
@@ -194,7 +193,6 @@ export default function ParsedResumeView({
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Programming Languages */}
             <div className="p-4 rounded-xl bg-muted/20 border space-y-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Languages ({skills.languages?.length || 0})
@@ -214,7 +212,6 @@ export default function ParsedResumeView({
               </div>
             </div>
 
-            {/* Frameworks & Libraries */}
             <div className="p-4 rounded-xl bg-muted/20 border space-y-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Frameworks & Libraries ({skills.frameworks?.length || 0})
@@ -234,7 +231,6 @@ export default function ParsedResumeView({
               </div>
             </div>
 
-            {/* Tools & Platforms */}
             <div className="p-4 rounded-xl bg-muted/20 border space-y-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <WrenchIcon className="size-3" />
@@ -255,7 +251,6 @@ export default function ParsedResumeView({
               </div>
             </div>
 
-            {/* Soft Skills */}
             <div className="p-4 rounded-xl bg-muted/20 border space-y-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <HeartHandshakeIcon className="size-3" />
@@ -279,7 +274,6 @@ export default function ParsedResumeView({
         </div>
       )}
 
-      {/* 3. Work Experience */}
       {experience && experience.length > 0 && (
         <div className="p-6 rounded-2xl bg-card border shadow-xs space-y-4">
           <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
@@ -325,7 +319,6 @@ export default function ParsedResumeView({
         </div>
       )}
 
-      {/* 4. Education */}
       {education && education.length > 0 && (
         <div className="p-6 rounded-2xl bg-card border shadow-xs space-y-4">
           <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
@@ -356,7 +349,6 @@ export default function ParsedResumeView({
         </div>
       )}
 
-      {/* 5. Collapsible Raw Text Inspector */}
       {resume.rawText && (
         <div className="p-4 rounded-2xl border bg-card/60 text-xs">
           <button
@@ -365,7 +357,8 @@ export default function ParsedResumeView({
           >
             <span className="flex items-center gap-1.5">
               <FileTextIcon className="size-3.5" />
-              Original Extracted Document Text ({resume.rawText.length} characters)
+              Original Extracted Document Text ({resume.rawText.length}{' '}
+              characters)
             </span>
             {showRawText ? (
               <ChevronUpIcon className="size-4" />
@@ -384,4 +377,3 @@ export default function ParsedResumeView({
     </div>
   );
 }
-

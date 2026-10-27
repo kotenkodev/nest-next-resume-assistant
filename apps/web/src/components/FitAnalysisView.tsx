@@ -27,13 +27,14 @@ interface FitAnalysisViewProps {
   conversationId?: string;
 }
 
-export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps) {
+export default function FitAnalysisView({
+  conversationId,
+}: FitAnalysisViewProps) {
   const queryClient = useQueryClient();
   const { selectedResumeId: storeResumeId, selectedJobIds: storeJobIds } =
     useWorkspaceStore();
 
-  // 1. Fetch conversation details (to get active resumeId and jobPostingIds)
-  const { data: conversation, isLoading: isConvoLoading } = useQuery({
+  const { data: conversation } = useQuery({
     queryKey: ['conversation', conversationId],
     queryFn: () => chatApi.getConversation(conversationId!),
     enabled: !!conversationId,
@@ -46,10 +47,8 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
     [rawJobPostingIds],
   );
 
-  // Active job selector (if multiple jobs are in context)
   const [selectedJobId, setSelectedJobId] = React.useState<string | null>(null);
 
-  // Derive active job cleanly without any useEffect or flash
   const activeJobId = React.useMemo(() => {
     if (selectedJobId && jobPostingIds.includes(selectedJobId)) {
       return selectedJobId;
@@ -57,7 +56,6 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
     return jobPostingIds[0] || null;
   }, [selectedJobId, jobPostingIds]);
 
-  // 2. Fetch the Resume and Active Job details for header info
   const { data: activeJob } = useQuery({
     queryKey: ['job', activeJobId],
     queryFn: () => jobsApi.get(activeJobId!),
@@ -70,18 +68,12 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
     enabled: !!resumeId,
   });
 
-  // 3. Fetch Fit Analysis for (resumeId, activeJobId)
-  const {
-    data: analysis,
-    isLoading: isAnalysisLoading,
-    isError: isAnalysisError,
-  } = useQuery({
+  const { data: analysis, isLoading: isAnalysisLoading } = useQuery({
     queryKey: ['fit-analysis', resumeId, activeJobId],
     queryFn: () => analysisApi.get(resumeId!, activeJobId!),
     enabled: !!resumeId && !!activeJobId,
   });
 
-  // 4. Run Fit Analysis Mutation
   const { mutate: runAnalysis, isPending: isRunning } = useMutation({
     mutationFn: () => analysisApi.run(resumeId!, activeJobId!),
     onSuccess: (newAnalysis) => {
@@ -96,7 +88,6 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
     },
   });
 
-  // Empty / Guard State: No resume or job selected
   if (!resumeId || !activeJobId || jobPostingIds.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-8 text-center text-muted-foreground">
@@ -118,7 +109,6 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
-      {/* Job Switcher Tabs (if conversation has multiple jobs) */}
       {jobPostingIds.length > 1 && (
         <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b">
           <span className="text-xs font-medium text-muted-foreground shrink-0 mr-1">
@@ -144,7 +134,6 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
         </div>
       )}
 
-      {/* Header Banner: Candidate -> Job target */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-card border shadow-xs">
         <div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
@@ -188,7 +177,6 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
         </div>
       </div>
 
-      {/* Loading Skeleton */}
       {isAnalysisLoading ? (
         <div className="space-y-4">
           <Skeleton className="h-32 w-full rounded-2xl" />
@@ -206,18 +194,16 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
             Fit Analysis Not Generated Yet
           </h3>
           <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
-            Click &quot;Run AI Fit Analysis&quot; above to run the LLM evaluation
-            pipeline. It will compute an overall match score, detect required and
-            preferred skill gaps, map experience, and generate interview
-            talking points.
+            Click &quot;Run AI Fit Analysis&quot; above to run the LLM
+            evaluation pipeline. It will compute an overall match score, detect
+            required and preferred skill gaps, map experience, and generate
+            interview talking points.
           </p>
         </div>
       ) : (
         /* Analysis Results */
         <div className="space-y-6">
-          {/* 1. Score Overview Card */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Match Score */}
             <div className="p-5 rounded-2xl border bg-card shadow-2xs flex flex-col justify-between">
               <span className="text-xs font-medium text-muted-foreground">
                 Overall Match Score
@@ -243,7 +229,7 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
                       : 'Skill Gap Warning'}
                 </span>
               </div>
-              {/* Progress bar */}
+
               <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                 <div
                   className={cn(
@@ -259,7 +245,6 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
               </div>
             </div>
 
-            {/* Experience Alignment Score */}
             <div className="p-5 rounded-2xl border bg-card shadow-2xs flex flex-col justify-between">
               <span className="text-xs font-medium text-muted-foreground">
                 Experience Alignment
@@ -278,7 +263,6 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
               </div>
             </div>
 
-            {/* Quick Skills Summary */}
             <div className="p-5 rounded-2xl border bg-card shadow-2xs flex flex-col justify-between">
               <span className="text-xs font-medium text-muted-foreground">
                 Skills Matched vs Missing
@@ -311,7 +295,6 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
             </div>
           </div>
 
-          {/* 2. Skill Gaps Breakdown */}
           <div className="p-5 rounded-2xl border bg-card shadow-2xs space-y-4">
             <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
               <AwardIcon className="size-4 text-primary" />
@@ -319,7 +302,6 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Matched Skills */}
               <div className="p-4 rounded-xl bg-muted/30 border border-emerald-500/20">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2.5">
                   <CheckCircle2Icon className="size-4" />
@@ -342,12 +324,10 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
                 </div>
               </div>
 
-              {/* Missing Required Skills */}
               <div className="p-4 rounded-xl bg-muted/30 border border-destructive/20">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-destructive mb-2.5">
                   <XCircleIcon className="size-4" />
-                  Missing Required (
-                  {analysis.skillGaps.missingRequired.length})
+                  Missing Required ({analysis.skillGaps.missingRequired.length})
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {analysis.skillGaps.missingRequired.map((skill) => (
@@ -366,7 +346,6 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
                 </div>
               </div>
 
-              {/* Missing Preferred Skills */}
               <div className="p-4 rounded-xl bg-muted/30 border border-amber-500/20">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 mb-2.5">
                   <AlertCircleIcon className="size-4" />
@@ -392,16 +371,14 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
             </div>
           </div>
 
-          {/* 3. Experience Alignment & Mapping Table */}
           <div className="p-5 rounded-2xl border bg-card shadow-2xs space-y-4">
             <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
               <BriefcaseIcon className="size-4 text-primary" />
               Experience Alignment & Requirement Mapping
             </h3>
 
-            {/* Strengths & Concerns */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-emerald-500/[0.03] border border-emerald-500/20">
+              <div className="p-4 rounded-xl bg-emerald-500/3 border border-emerald-500/20">
                 <h4 className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
                   Key Strengths
                 </h4>
@@ -418,7 +395,7 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
                 </ul>
               </div>
 
-              <div className="p-4 rounded-xl bg-amber-500/[0.03] border border-amber-500/20">
+              <div className="p-4 rounded-xl bg-amber-500/3 border border-amber-500/20">
                 <h4 className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-2">
                   Alignment Concerns
                 </h4>
@@ -436,14 +413,15 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
               </div>
             </div>
 
-            {/* Detailed Requirement Mapping Table */}
             {analysis.experienceAlignment.mapping?.length > 0 && (
               <div className="overflow-x-auto rounded-xl border">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-muted/50 border-b text-muted-foreground font-medium">
                     <tr>
                       <th className="p-3 w-2/5">Job Requirement</th>
-                      <th className="p-3 w-2/5">Matching Candidate Experience</th>
+                      <th className="p-3 w-2/5">
+                        Matching Candidate Experience
+                      </th>
                       <th className="p-3 w-1/5 text-center">Fit Level</th>
                     </tr>
                   </thead>
@@ -454,7 +432,8 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
                           {map.jobRequirement}
                         </td>
                         <td className="p-3 text-muted-foreground">
-                          {map.matchingExperience || 'No direct experience found'}
+                          {map.matchingExperience ||
+                            'No direct experience found'}
                         </td>
                         <td className="p-3 text-center">
                           <span
@@ -478,14 +457,12 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
             )}
           </div>
 
-          {/* 4. Interview Preparation (STAR Guidance & Technical Talking Points) */}
           <div className="p-5 rounded-2xl border bg-card shadow-2xs space-y-4">
             <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
               <FileQuestionIcon className="size-4 text-primary" />
               Tailored Interview Questions & STAR Guidance
             </h3>
 
-            {/* Technical Questions */}
             <div className="space-y-3">
               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Technical Questions (Targeting Skill Gaps)
@@ -518,7 +495,6 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
               ))}
             </div>
 
-            {/* Behavioral Questions */}
             <div className="space-y-3 pt-3 border-t">
               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Behavioral STAR Questions

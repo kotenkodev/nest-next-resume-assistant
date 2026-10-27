@@ -30,7 +30,7 @@ export function Dropzone({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: { 'application/pdf': ['.pdf'] },
     maxFiles,
-    maxSize: 10 * 1024 * 1024, // 10MB
+    maxSize: 10 * 1024 * 1024,
     disabled,
     onDropAccepted: onFilesAccepted,
     onDropRejected,

@@ -57,7 +57,9 @@ function CodeBlock({
           {copied ? (
             <>
               <CheckIcon className="size-3 text-emerald-500" />
-              <span className="text-[10px] text-emerald-500 font-sans font-medium">Copied</span>
+              <span className="text-[10px] text-emerald-500 font-sans font-medium">
+                Copied
+              </span>
             </>
           ) : (
             <>
@@ -162,7 +164,10 @@ const markdownComponents: Components = {
     <li className={cn('leading-relaxed pl-0.5', className)} {...props} />
   ),
   strong: ({ className, ...props }) => (
-    <strong className={cn('font-semibold text-foreground', className)} {...props} />
+    <strong
+      className={cn('font-semibold text-foreground', className)}
+      {...props}
+    />
   ),
   em: ({ className, ...props }) => (
     <em className={cn('italic text-foreground', className)} {...props} />
@@ -214,10 +219,7 @@ const markdownComponents: Components = {
     />
   ),
   tbody: ({ className, ...props }) => (
-    <tbody
-      className={cn('divide-y divide-border/60', className)}
-      {...props}
-    />
+    <tbody className={cn('divide-y divide-border/60', className)} {...props} />
   ),
   tr: ({ className, ...props }) => (
     <tr
@@ -245,7 +247,10 @@ const markdownComponents: Components = {
       return (
         <input
           type="checkbox"
-          className={cn('mr-2 rounded accent-primary align-middle cursor-default', className)}
+          className={cn(
+            'mr-2 rounded accent-primary align-middle cursor-default',
+            className,
+          )}
           {...props}
         />
       );
@@ -254,7 +259,10 @@ const markdownComponents: Components = {
   },
   img: ({ className, alt, ...props }) => (
     <img
-      className={cn('rounded-xl max-w-full my-3 border border-border shadow-xs', className)}
+      className={cn(
+        'rounded-xl max-w-full my-3 border border-border shadow-xs',
+        className,
+      )}
       alt={alt}
       {...props}
     />
@@ -292,7 +300,10 @@ export function Markdown({ children, className }: MarkdownProps) {
         className,
       )}
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={markdownComponents}
+      >
         {children}
       </ReactMarkdown>
     </div>

@@ -1,16 +1,16 @@
 $kind: http-example
 request:
-  url: "{{baseUrl}}/resumes"
+  url: '{{baseUrl}}/resumes'
   method: GET
   headers:
     - key: Accept
       value: application/json
     - key: better-auth.session_token
       value: <API Key>
-      description: "Added as a part of security scheme: apikey"
+      description: 'Added as a part of security scheme: apikey'
   body:
     type: text
-    content: ""
+    content: ''
 response:
   statusCode: 401
   statusText: Unauthorized

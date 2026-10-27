@@ -76,4 +76,3 @@ export class CreateSession1792594926753 implements MigrationInterface {
     await queryRunner.dropTable('session');
   }
 }
-
