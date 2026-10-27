@@ -1,6 +1,7 @@
 import { Chat } from '@/components/Chat';
 import FitAnalysisView from '@/components/FitAnalysisView';
 import JobMatchesView from '@/components/JobMatchesView';
+import ParsedResumeView from '@/components/ParsedResumeView';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   SparklesIcon,
@@ -74,6 +75,7 @@ export default async function Home({ params }: PageProps) {
           <TabsList>
             <TabsTrigger value="chat">Chat</TabsTrigger>
             <TabsTrigger value="fit">Fit Analysis</TabsTrigger>
+            <TabsTrigger value="resume">Parsed Resume</TabsTrigger>
             <TabsTrigger value="matches">Matching Jobs</TabsTrigger>
           </TabsList>
         </div>
@@ -90,6 +92,13 @@ export default async function Home({ params }: PageProps) {
           className="flex-1 min-h-0 overflow-y-auto p-6 m-0"
         >
           <FitAnalysisView conversationId={conversationId} />
+        </TabsContent>
+
+        <TabsContent
+          value="resume"
+          className="flex-1 min-h-0 overflow-y-auto p-6 m-0"
+        >
+          <ParsedResumeView conversationId={conversationId} />
         </TabsContent>
 
         <TabsContent
