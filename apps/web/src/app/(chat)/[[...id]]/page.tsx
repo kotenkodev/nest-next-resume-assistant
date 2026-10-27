@@ -41,7 +41,6 @@ export default async function Home({ params }: PageProps) {
           and practice tailored interview questions.
         </p>
 
-        {/* 3 Step Guide */}
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full text-left">
           <div className="p-4 rounded-xl border bg-card">
             <FileTextIcon className="size-5 text-primary mb-2" />
@@ -112,7 +111,7 @@ export default async function Home({ params }: PageProps) {
           value="matches"
           className="flex-1 min-h-0 overflow-y-auto p-6 m-0"
         >
-          <JobMatchesView />
+          <JobMatchesView conversationId={conversationId} />
         </TabsContent>
       </Tabs>
     </div>
