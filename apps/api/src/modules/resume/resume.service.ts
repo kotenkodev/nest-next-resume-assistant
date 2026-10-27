@@ -12,6 +12,7 @@ import { Resume } from './entities/resume.entity';
 import { S3ServiceException } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 import { ProcessingJob } from '../pipeline/entities/processing-job.entity';
+import { Conversation } from '../chat/entities/conversation.entity';
 
 @Injectable()
 export class ResumeService {
@@ -38,6 +39,7 @@ export class ResumeService {
 
     await this.resumeRepository.manager.transaction(async (manager) => {
       await manager.delete(ProcessingJob, { targetId: id, userId });
+      await manager.delete(Conversation, { resumeId: id, userId });
       await manager.delete(Resume, { id, userId });
     });
 

@@ -40,6 +40,12 @@ export class JobPostingService {
     if (!job) return;
 
     await this.jobPostingRepository.manager.transaction(async (manager) => {
+      await manager.query(
+        `UPDATE conversation 
+         SET "jobPostingIds" = array_remove("jobPostingIds", $1::uuid) 
+         WHERE "userId" = $2 AND $1::uuid = ANY("jobPostingIds")`,
+        [id, userId],
+      );
       await manager.delete(ProcessingJob, { targetId: id, userId });
       await manager.delete(JobPosting, { id, userId });
     });

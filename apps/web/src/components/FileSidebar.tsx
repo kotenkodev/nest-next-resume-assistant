@@ -22,7 +22,8 @@ import {
   Trash2Icon,
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { jobsApi, resumesApi } from '@/api';
+import { useRouter, useParams } from 'next/navigation';
+import { jobsApi, resumesApi, type ConversationDetail } from '@/api';
 import { useWorkspaceStore } from '@/store/workspace';
 import { Checkbox } from './ui/checkbox';
 import { Skeleton } from './ui/skeleton';
@@ -67,10 +68,19 @@ export function FileSidebar({
   className,
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
+  const router = useRouter();
+  const params = useParams<{ id?: string[] }>();
+  const currentConversationId = params?.id?.[0];
+
   const { uploadMultiple } = useDocumentUpload();
   const queryClient = useQueryClient();
-  const { selectedResumeId, setSelectedResumeId, selectedJobIds, toggleJobId } =
-    useWorkspaceStore();
+  const {
+    selectedResumeId,
+    setSelectedResumeId,
+    selectedJobIds,
+    setSelectedJobIds,
+    toggleJobId,
+  } = useWorkspaceStore();
 
   // 1. Resumes Query with auto-polling while processing
   const {
@@ -107,10 +117,27 @@ export function FileSidebar({
   // 3. Delete Resume Mutation
   const { mutate: deleteResume } = useMutation({
     mutationFn: resumesApi.delete,
-    onSuccess: (_, deletedId) => {
+    onSuccess: async (_, deletedId) => {
       if (selectedResumeId === deletedId) setSelectedResumeId(null);
       toast.success('Resume deleted');
-      return queryClient.invalidateQueries({ queryKey: ['resumes'] });
+
+      // Check if active conversation belongs to this deleted resume
+      if (currentConversationId) {
+        const activeConversation = queryClient.getQueryData<ConversationDetail>([
+          'conversation',
+          currentConversationId,
+        ]);
+        if (activeConversation?.resumeId === deletedId) {
+          router.push('/');
+        }
+      }
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['resumes'] }),
+        queryClient.invalidateQueries({ queryKey: ['conversations'] }),
+        queryClient.invalidateQueries({ queryKey: ['job-matches'] }),
+        queryClient.invalidateQueries({ queryKey: ['fit-analyses'] }),
+      ]);
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete resume');
@@ -120,10 +147,19 @@ export function FileSidebar({
   // 4. Delete Job Mutation
   const { mutate: deleteJob } = useMutation({
     mutationFn: jobsApi.delete,
-    onSuccess: (_, deletedId) => {
-      if (selectedJobIds.includes(deletedId)) toggleJobId(deletedId);
+    onSuccess: async (_, deletedId) => {
+      if (selectedJobIds.includes(deletedId)) {
+        setSelectedJobIds(selectedJobIds.filter((id) => id !== deletedId));
+      }
       toast.success('Job posting deleted');
-      return queryClient.invalidateQueries({ queryKey: ['jobs'] });
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['jobs'] }),
+        queryClient.invalidateQueries({ queryKey: ['conversations'] }),
+        queryClient.invalidateQueries({ queryKey: ['conversation'] }),
+        queryClient.invalidateQueries({ queryKey: ['job-matches'] }),
+        queryClient.invalidateQueries({ queryKey: ['fit-analyses'] }),
+      ]);
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete job posting');
@@ -137,7 +173,6 @@ export function FileSidebar({
       className={cn('border-l border-sidebar-border', className)}
       {...props}
     >
-      {/* Header */}
       <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2.5">
@@ -156,7 +191,6 @@ export function FileSidebar({
         </SidebarMenu>
       </SidebarHeader>
 
-      {/* Tabs Container */}
       <SidebarContent className="p-3">
         <Tabs defaultValue="resumes" className="flex flex-col h-full">
           <TabsList className="grid w-full grid-cols-2 mb-3">
@@ -168,7 +202,6 @@ export function FileSidebar({
             </TabsTrigger>
           </TabsList>
 
-          {/* Resumes Tab */}
           <TabsContent value="resumes" className="space-y-3 m-0">
             <Dropzone
               label="Drop Candidate Resume PDF"
@@ -195,7 +228,7 @@ export function FileSidebar({
                     resume.parsedProfile?.name || resume.fileName;
                   const currentTitle =
                     resume.parsedProfile?.experience?.[0]?.title;
-                  
+
                   // Top skills (languages + frameworks)
                   const skills = [
                     ...(resume.parsedProfile?.skills?.languages || []),
@@ -221,7 +254,6 @@ export function FileSidebar({
                           : 'border-border/80',
                       )}
                     >
-                      {/* Top Row: Checkbox, Icon, Title, Status */}
                       <div className="flex items-start gap-2.5">
                         <div className="pt-0.5">
                           <Checkbox
@@ -229,7 +261,9 @@ export function FileSidebar({
                             disabled={!isReady}
                             onCheckedChange={() => {
                               if (!isReady) return;
-                              setSelectedResumeId(isSelected ? null : resume.id);
+                              setSelectedResumeId(
+                                isSelected ? null : resume.id,
+                              );
                             }}
                           />
                         </div>
@@ -254,7 +288,6 @@ export function FileSidebar({
                         </div>
                       </div>
 
-                      {/* Middle Row: Extracted Skill Chips */}
                       {displaySkills.length > 0 && (
                         <div className="flex flex-wrap items-center gap-1 pl-6 pt-0.5">
                           {displaySkills.map((skill) => (
@@ -273,7 +306,6 @@ export function FileSidebar({
                         </div>
                       )}
 
-                      {/* Bottom Row: File Info & Delete action */}
                       <div className="flex items-center justify-between pl-6 pt-1.5 border-t border-border/50 text-[10px] text-muted-foreground">
                         <div className="flex items-center gap-1.5 truncate">
                           <span className="truncate">{resume.fileName}</span>
@@ -308,7 +340,6 @@ export function FileSidebar({
             )}
           </TabsContent>
 
-          {/* Job Postings Tab */}
           <TabsContent value="job-postings" className="space-y-3 m-0">
             <Dropzone
               label="Drop Job Posting PDF"
@@ -359,7 +390,6 @@ export function FileSidebar({
                           : 'border-border/80',
                       )}
                     >
-                      {/* Top Row: Checkbox, Icon, Title, Status */}
                       <div className="flex items-start gap-2.5">
                         <div className="pt-0.5">
                           <Checkbox
@@ -393,14 +423,15 @@ export function FileSidebar({
                                 </span>
                               )}
                               {company && (level || expYears) && <span>•</span>}
-                              {level && <span className="capitalize">{level}</span>}
+                              {level && (
+                                <span className="capitalize">{level}</span>
+                              )}
                               {expYears && <span>{expYears}+ yrs</span>}
                             </div>
                           )}
                         </div>
                       </div>
 
-                      {/* Middle Row: Extracted Skill Chips */}
                       {requiredSkills.length > 0 && (
                         <div className="flex flex-wrap items-center gap-1 pl-6 pt-0.5">
                           {requiredSkills.map((skill) => (
@@ -419,7 +450,6 @@ export function FileSidebar({
                         </div>
                       )}
 
-                      {/* Bottom Row: File Info & Delete action */}
                       <div className="flex items-center justify-between pl-6 pt-1.5 border-t border-border/50 text-[10px] text-muted-foreground">
                         <div className="flex items-center gap-1.5 truncate">
                           <span className="truncate">{job.fileName}</span>
@@ -446,7 +476,9 @@ export function FileSidebar({
             ) : (
               <div className="text-center py-8 text-xs text-muted-foreground">
                 <BriefcaseIcon className="size-8 mx-auto mb-1.5 opacity-30" />
-                <p className="font-medium text-foreground">No job postings yet</p>
+                <p className="font-medium text-foreground">
+                  No job postings yet
+                </p>
                 <p className="text-[11px] mt-0.5">
                   Drop a PDF above to extract requirements
                 </p>
