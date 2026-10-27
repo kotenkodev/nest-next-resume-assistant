@@ -1,5 +1,5 @@
 import type { ConversationDto, CreateConversationPayload } from '@repo/shared';
-import { request } from './client';
+import { API_BASE, request } from './client';
 export interface ConversationDetail extends ConversationDto {
   messages: Array<{
     id: string;
@@ -19,6 +19,14 @@ export const chatApi = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+  updateConversation: (
+    conversationId: string,
+    payload: { jobPostingIds?: string[]; title?: string },
+  ) =>
+    request<ConversationDto>(`/api/chat/conversations/${conversationId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
   deleteConversation: (conversationId: string) =>
     request<void>(`/api/chat/conversations/${conversationId}`, {
       method: 'DELETE',
@@ -35,9 +43,10 @@ export const chatApi = {
   ): Promise<void> {
     try {
       const response = await fetch(
-        `/api/chat/conversations/${conversationId}/messages/stream`,
+        `${API_BASE}/api/chat/conversations/${conversationId}/messages/stream`,
         {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },

@@ -1,458 +1,436 @@
 'use client';
 
 import * as React from 'react';
-import { useChat } from '@ai-sdk/react';
-import type { UIDataTypes, UIMessage } from 'ai';
-import {
-  ArrowUpIcon,
-  CircleCheckIcon,
-  GlobeIcon,
-  LoaderCircleIcon,
-  MessageCircleDashedIcon,
-  PaperclipIcon,
-  PlusIcon,
-  RotateCwIcon,
-  TelescopeIcon,
-  TerminalIcon,
-} from 'lucide-react';
-import { motion, useReducedMotion } from 'motion/react';
-
-import { createChat, getMessageText } from '@/lib/ai';
-import { MESSAGE_ANIMATIONS } from '@/lib/message-animations';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { chatApi, jobsApi, resumesApi } from '@/api';
 import { Markdown } from '@/components/markdown';
 import { Bubble, BubbleContent } from '@/components/ui/bubble';
 import { Button } from '@/components/ui/button';
-import { CodeBlock, CodeBlockContent } from '@/components/ui/code-block';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from '@/components/ui/empty';
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupTextarea,
-} from '@/components/ui/input-group';
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupTextarea } from '@/components/ui/input-group';
 import { Message, MessageContent } from '@/components/ui/message';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
-  MessageScroller,
-  MessageScrollerButton,
-  MessageScrollerContent,
-  MessageScrollerItem,
-  MessageScrollerProvider,
-  MessageScrollerViewport,
-} from '@/components/ui/message-scroller';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
-  Trace,
-  TraceCollapsible,
-  TraceCollapsibleContent,
-  TraceCollapsibleTrigger,
-  TraceIcon,
-  TraceLine,
-  TraceTitle,
-} from '@/components/ui/trace';
+  ArrowUpIcon,
+  SquareIcon,
+  SparklesIcon,
+  UserIcon,
+  BriefcaseIcon,
+  RotateCcwIcon,
+  Loader2Icon,
+  MessageSquareIcon,
+  Building2Icon,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
-type ChatMessage = UIMessage<
-  unknown,
-  UIDataTypes,
-  {
-    runCommand: {
-      input: { command: string };
-      output: { stdout: string };
-    };
-  }
->;
-
-type ChatPart = ChatMessage['parts'][number];
-
-type ToolPart = Extract<ChatPart, { type: 'tool-runCommand' }>;
-
-const chat = createChat<ChatMessage>()
-  .user('Add a dark mode toggle to the settings page.')
-  .sleep(600)
-  .assistant(({ writer }) => {
-    writer.reasoning(
-      'I need to know how themes are set up before I add a toggle. If next-themes is already in the layout, the toggle only has to call setTheme.',
-    );
-    writer.sleep(400);
-    writer
-      .tool('runCommand', { input: { command: 'rg -l ThemeProvider app' } })
-      .sleep(800)
-      .output({ stdout: 'app/layout.tsx' });
-    writer.sleep(500);
-    writer.text(`next-themes is already set up in \`app/layout.tsx\`, so the toggle only has to call \`setTheme\`.
-
-**Changes**
-
-- Added \`components/mode-toggle.tsx\` with a Light and Dark option.
-- Put \`<ModeToggle />\` next to the Appearance heading in \`app/settings/page.tsx\`.
-
-\`\`\`tsx
-const { setTheme } = useTheme()
-\`\`\`
-`);
-  })
-  .user('Make it follow the system setting by default.')
-  .sleep(600)
-  .assistant(({ writer }) => {
-    writer.reasoning(
-      'The default theme lives on the ThemeProvider. I should check what it is set to now.',
-    );
-    writer.sleep(400);
-    writer
-      .tool('runCommand', {
-        input: { command: 'rg -n defaultTheme app/layout.tsx' },
-      })
-      .sleep(800)
-      .output({
-        stdout: '12:  <ThemeProvider attribute="class" defaultTheme="light">',
-      });
-    writer.sleep(500);
-    writer.text(`It was set to \`light\`. I updated the \`ThemeProvider\` in \`app/layout.tsx\`:
-
-\`\`\`tsx
-<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-\`\`\`
-
-New visitors now get the theme from their OS. The toggle also has a **System** option, so anyone who picked Light or Dark can switch back.
-`);
-  })
-  .user('Run the build before I ship it.')
-  .sleep(600)
-  .assistant(({ writer }) => {
-    writer
-      .tool('runCommand', { input: { command: 'pnpm build' } })
-      .sleep(1600)
-      .output({
-        stdout:
-          '▲ Next.js 16.0.0\n\n✓ Compiled successfully in 4.2s\n✓ Linting and checking validity of types\n✓ Generating static pages (12/12)',
-      });
-    writer.sleep(500);
-    writer.text(`The build passes, so it is ready to ship.
-
-- Compiled in **4.2s**.
-- No lint or type errors.
-- Generated all **12** static pages.
-`);
-  });
-
-const initialMessages = chat.get(0);
-const transport = chat.transport({
-  delayMs: 16,
-  fallback:
-    'This demo only knows the scripted turns. Press reset to start over.',
-});
-
-const MotionMessageScrollerItem = motion.create(MessageScrollerItem);
-
-export function Chat({
-  conversationId,
-}: {
+interface ChatProps {
   conversationId?: string;
-  productId?: string;
-} = {}) {
-  const { messages, sendMessage, setMessages, status } = useChat({
-    messages: initialMessages,
-    transport,
+}
+
+interface LocalMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt?: string;
+  isStreaming?: boolean;
+}
+
+const PROMPT_SUGGESTIONS = [
+  'How well does this candidate fit the primary job requirements?',
+  'What are the most critical missing skills or skill gaps?',
+  'Draft 3 targeted technical interview questions probing candidate gaps.',
+  'Summarize the candidate’s core strengths and experience highlights.',
+];
+
+export function Chat({ conversationId }: ChatProps) {
+  const queryClient = useQueryClient();
+  const [messages, setMessages] = React.useState<LocalMessage[]>([]);
+  const [input, setInput] = React.useState('');
+  const [isGenerating, setIsGenerating] = React.useState(false);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  // 1. Fetch conversation details & history
+  const {
+    data: conversation,
+    isLoading: isConvoLoading,
+    refetch: refetchConvo,
+  } = useQuery({
+    queryKey: ['conversation', conversationId],
+    queryFn: () => chatApi.getConversation(conversationId!),
+    enabled: !!conversationId,
   });
-  const [draft, setDraft] = React.useState<string | null>(null);
-  const formRef = React.useRef<HTMLFormElement>(null);
-  const shouldReduceMotion = useReducedMotion();
-  const nextMessage = chat.next(messages);
-  const busy = status === 'submitted' || status === 'streaming';
-  const text = draft ?? (nextMessage ? getMessageText(nextMessage) : '');
-  const canSend = text.trim().length > 0 && !busy;
 
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!canSend) {
-      return;
-    }
+  // 2. Fetch candidate resume info for context pill
+  const { data: resume } = useQuery({
+    queryKey: ['resume', conversation?.resumeId],
+    queryFn: () => resumesApi.get(conversation!.resumeId),
+    enabled: !!conversation?.resumeId,
+  });
 
-    if (draft === null && nextMessage) {
-      void sendMessage(nextMessage);
-    } else {
-      void sendMessage({ text: text.trim() });
+  // 3. Fetch jobs for context pill
+  const { data: allJobs } = useQuery({
+    queryKey: ['jobs'],
+    queryFn: () => jobsApi.list(),
+    enabled: !!conversation?.jobPostingIds?.length,
+  });
+
+  const targetJobs = React.useMemo(() => {
+    if (!allJobs || !conversation?.jobPostingIds) return [];
+    const idSet = new Set(conversation.jobPostingIds);
+    return allJobs.filter((j) => idSet.has(j.id));
+  }, [allJobs, conversation?.jobPostingIds]);
+
+  // Sync loaded messages into local state when conversation updates
+  React.useEffect(() => {
+    if (conversation?.messages && !isGenerating) {
+      setMessages(conversation.messages);
     }
-    setDraft(null);
+  }, [conversation?.messages, isGenerating]);
+
+  // Auto-scroll to bottom on message change
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  };
+
+  React.useEffect(() => {
+    scrollToBottom(isGenerating ? 'auto' : 'smooth');
+  }, [messages, isGenerating]);
+
+  // Handle stream send
+  const handleSendMessage = async (textToSend: string) => {
+    const trimmed = textToSend.trim();
+    if (!trimmed || !conversationId || isGenerating) return;
+
+    setInput('');
+    setIsGenerating(true);
+
+    const userMsgId = `user-${Date.now()}`;
+    const assistantMsgId = `assistant-${Date.now()}`;
+
+    const userMessage: LocalMessage = {
+      id: userMsgId,
+      role: 'user',
+      content: trimmed,
+      createdAt: new Date().toISOString(),
+    };
+
+    const initialAssistantMessage: LocalMessage = {
+      id: assistantMsgId,
+      role: 'assistant',
+      content: '',
+      createdAt: new Date().toISOString(),
+      isStreaming: true,
+    };
+
+    setMessages((prev) => [...prev, userMessage, initialAssistantMessage]);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      await chatApi.streamMessage(
+        conversationId,
+        trimmed,
+        {
+          onChunk: (chunk: string) => {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantMsgId
+                  ? { ...m, content: m.content + chunk }
+                  : m,
+              ),
+            );
+          },
+          onDone: () => {
+            setIsGenerating(false);
+            abortControllerRef.current = null;
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantMsgId ? { ...m, isStreaming: false } : m,
+              ),
+            );
+            queryClient.invalidateQueries({ queryKey: ['conversations'] });
+            queryClient.invalidateQueries({
+              queryKey: ['conversation', conversationId],
+            });
+          },
+          onError: (error: Error) => {
+            setIsGenerating(false);
+            abortControllerRef.current = null;
+            toast.error(error.message || 'Streaming failed');
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantMsgId
+                  ? {
+                      ...m,
+                      content:
+                        m.content ||
+                        '⚠️ *An error occurred while generating response. Please try again.*',
+                      isStreaming: false,
+                    }
+                  : m,
+              ),
+            );
+          },
+        },
+        controller.signal,
+      );
+    } catch {
+      setIsGenerating(false);
+      abortControllerRef.current = null;
+    }
+  };
+
+  const handleStopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsGenerating(false);
+      setMessages((prev) =>
+        prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m)),
+      );
+      toast.info('Generation cancelled');
+    }
+  };
+
+  const candidateName =
+    resume?.parsedProfile?.name || resume?.fileName || 'Candidate';
+
+  if (!conversationId) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center p-8 text-center text-muted-foreground">
+        <MessageSquareIcon className="size-12 mb-3 opacity-25" />
+        <h3 className="text-base font-semibold text-foreground">
+          No Conversation Selected
+        </h3>
+        <p className="mt-1 text-xs max-w-sm">
+          Select or create a conversation from the left sidebar to start chatting with the career assistant.
+        </p>
+      </div>
+    );
   }
 
   return (
-    <MessageScrollerProvider>
-      <div className="relative flex h-full flex-1 min-h-0 flex-col [[data-slot=preview]:has(&)]:bg-background [[data-slot=preview]:has(&)>div]:p-0!">
-        <div className="flex h-full flex-1 min-h-0 flex-col justify-between">
-          <div className="flex items-start justify-between gap-4 p-8 pb-4">
-            <div className="flex flex-col gap-1">
-              <div className="font-medium">New Thread</div>
-              <div className="text-sm text-muted-foreground">
-                Ask the agent to change your code.
+    <div className="flex h-full w-full flex-col min-h-0 bg-background overflow-hidden">
+      {/* 1. Header Bar */}
+      <div className="flex items-center justify-between border-b px-6 py-2.5 bg-card/40 backdrop-blur shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <SparklesIcon className="size-4" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-xs font-semibold text-foreground truncate">
+              {conversation?.title || 'Career Intelligence Chat'}
+            </h3>
+            <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-0.5">
+              <span className="flex items-center gap-1 font-medium text-foreground truncate">
+                <UserIcon className="size-3 text-primary" />
+                {candidateName}
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1">
+                <BriefcaseIcon className="size-3" />
+                {targetJobs.length} {targetJobs.length === 1 ? 'Job' : 'Jobs'} context
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => refetchConvo()}
+          disabled={isGenerating || isConvoLoading}
+          aria-label="Refresh conversation"
+          title="Refresh conversation history"
+        >
+          <RotateCcwIcon className="size-3.5" />
+        </Button>
+      </div>
+
+      {/* 2. Messages Scroll Container */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-8 py-6 space-y-5">
+        {isConvoLoading && messages.length === 0 ? (
+          <div className="space-y-4 max-w-2xl mx-auto">
+            <Skeleton className="h-16 w-3/4 rounded-2xl ml-auto" />
+            <Skeleton className="h-28 w-5/6 rounded-2xl" />
+            <Skeleton className="h-16 w-2/3 rounded-2xl ml-auto" />
+          </div>
+        ) : messages.length === 0 ? (
+          /* Empty Thread / Starter Prompts */
+          <div className="flex h-full flex-col items-center justify-center max-w-xl mx-auto text-center p-6">
+            <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+              <SparklesIcon className="size-6" />
+            </div>
+            <h3 className="text-base font-bold text-foreground">
+              Career Intelligence Assistant
+            </h3>
+            <p className="mt-1 text-xs text-muted-foreground max-w-sm leading-relaxed">
+              Evaluating candidate <strong className="text-foreground">{candidateName}</strong> against{' '}
+              <strong className="text-foreground">{targetJobs.length} selected job posting(s)</strong>.
+            </p>
+
+            {targetJobs.length > 0 && (
+              <div className="mt-4 flex flex-wrap justify-center gap-1.5 max-w-md">
+                {targetJobs.map((j) => (
+                  <span
+                    key={j.id}
+                    className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground border border-border"
+                  >
+                    <Building2Icon className="size-3 text-muted-foreground" />
+                    {j.title || j.parsedData?.role || j.fileName}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 w-full text-left space-y-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Suggested Prompts:
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {PROMPT_SUGGESTIONS.map((suggestion, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSendMessage(suggestion)}
+                    className="p-3 text-xs text-left rounded-xl border border-border bg-card hover:bg-accent/50 hover:border-primary/40 transition-all text-muted-foreground hover:text-foreground cursor-pointer shadow-2xs"
+                  >
+                    &ldquo;{suggestion}&rdquo;
+                  </button>
+                ))}
               </div>
             </div>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    aria-label="Reset conversation"
-                    onClick={() => {
-                      setMessages(initialMessages);
-                      setDraft(null);
-                    }}
-                    disabled={busy}
-                  >
-                    <RotateCwIcon />
-                  </Button>
+          </div>
+        ) : (
+          /* Message List */
+          <div className="max-w-3xl mx-auto space-y-5">
+            {messages.map((message) => {
+              if (message.role === 'user') {
+                return (
+                  <Message key={message.id} align="end">
+                    <MessageContent className="items-end">
+                      <Bubble align="end" variant="default" className="rounded-2xl px-4 py-2.5">
+                        <BubbleContent className="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed">
+                          {message.content}
+                        </BubbleContent>
+                      </Bubble>
+                      {message.createdAt && (
+                        <span className="text-[10px] text-muted-foreground px-1">
+                          {new Date(message.createdAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      )}
+                    </MessageContent>
+                  </Message>
+                );
+              }
+
+              // Assistant message
+              return (
+                <Message key={message.id} align="start">
+                  <div className="flex gap-3 w-full">
+                    <div className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                      <SparklesIcon className="size-3.5" />
+                    </div>
+
+                    <MessageContent className="flex-1 min-w-0">
+                      <Bubble
+                        align="start"
+                        variant="ghost"
+                        className="p-0 max-w-full text-foreground"
+                      >
+                        <BubbleContent className="text-xs sm:text-sm">
+                          {message.content ? (
+                            <Markdown>{message.content}</Markdown>
+                          ) : (
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground py-1">
+                              <Loader2Icon className="size-3.5 animate-spin text-primary" />
+                              <span>Thinking...</span>
+                            </div>
+                          )}
+                        </BubbleContent>
+                      </Bubble>
+
+                      {message.isStreaming && message.content && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-primary mt-1">
+                          <span className="inline-block size-1.5 rounded-full bg-primary animate-pulse" />
+                          <span>Generating answer...</span>
+                        </div>
+                      )}
+                    </MessageContent>
+                  </div>
+                </Message>
+              );
+            })}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+      </div>
+
+      {/* 3. Input Form */}
+      <div className="p-4 sm:p-6 pt-2 border-t bg-card/20 shrink-0">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSendMessage(input);
+          }}
+          className="max-w-3xl mx-auto"
+        >
+          <InputGroup className="rounded-xl border border-border shadow-xs bg-card focus-within:border-primary/60 transition-all">
+            <InputGroupTextarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask anything about candidate fit, skill gaps, or interview talking points..."
+              disabled={isGenerating}
+              className="min-h-12 max-h-36 py-2.5 text-xs sm:text-sm resize-none"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage(input);
                 }
-              />
-              <TooltipContent>
-                <p>Reset</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="min-h-0 flex-1">
-            {messages.length === 0 ? (
-              <Empty className="h-full">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <MessageCircleDashedIcon />
-                  </EmptyMedia>
-                  <EmptyTitle>What should we build?</EmptyTitle>
-                  <EmptyDescription>
-                    The agent can read your code, run commands and make changes.
-                    Press send to start.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            ) : (
-              <MessageScroller>
-                <MessageScrollerViewport>
-                  <MessageScrollerContent
-                    aria-busy={busy}
-                    className="gap-6 px-8 py-0"
+              }}
+            />
+
+            <InputGroupAddon align="block-end" className="px-2 pb-2 pt-0 justify-between">
+              <span className="text-[10px] text-muted-foreground hidden sm:inline">
+                Press <kbd className="px-1 py-0.5 rounded bg-muted font-mono">Enter</kbd> to send,{' '}
+                <kbd className="px-1 py-0.5 rounded bg-muted font-mono">Shift+Enter</kbd> for newline
+              </span>
+
+              <div className="ml-auto flex items-center gap-1.5">
+                {isGenerating ? (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon-sm"
+                    onClick={handleStopGeneration}
+                    className="size-7 rounded-lg"
+                    title="Stop generating"
                   >
-                    {messages.map((message) => {
-                      if (message.role === 'user') {
-                        return (
-                          <MotionMessageScrollerItem
-                            key={message.id}
-                            messageId={message.id}
-                            scrollAnchor
-                            variants={MESSAGE_ANIMATIONS['slide-up'].variants}
-                            initial={shouldReduceMotion ? false : 'initial'}
-                            animate="animate"
-                          >
-                            <Message align="end">
-                              <MessageContent>
-                                <Bubble align="end" variant="muted">
-                                  <BubbleContent>
-                                    {getMessageText(message)}
-                                  </BubbleContent>
-                                </Bubble>
-                              </MessageContent>
-                            </Message>
-                          </MotionMessageScrollerItem>
-                        );
-                      }
-
-                      const streaming = busy && message === messages.at(-1);
-                      const steps = message.parts.filter(
-                        (part) =>
-                          part.type === 'reasoning' ||
-                          part.type === 'tool-runCommand',
-                      );
-                      const reply = getMessageText(message);
-
-                      return (
-                        <MessageScrollerItem
-                          key={message.id}
-                          messageId={message.id}
-                        >
-                          <Message>
-                            <MessageContent className="gap-3">
-                              {steps.length > 0 && (
-                                <Trace>
-                                  {steps.map((part, index) => (
-                                    <StepRow
-                                      key={index}
-                                      part={part}
-                                      streaming={streaming}
-                                    />
-                                  ))}
-                                </Trace>
-                              )}
-                              {reply && <Markdown>{reply}</Markdown>}
-                            </MessageContent>
-                          </Message>
-                        </MessageScrollerItem>
-                      );
-                    })}
-                  </MessageScrollerContent>
-                </MessageScrollerViewport>
-                <MessageScrollerButton />
-              </MessageScroller>
-            )}
-          </div>
-          <div className="p-8 pt-0">
-            <form ref={formRef} onSubmit={onSubmit} className="w-full">
-              <InputGroup>
-                <InputGroupTextarea
-                  value={text}
-                  onChange={(event) => setDraft(event.target.value)}
-                  placeholder="Ask the agent..."
-                  aria-label="Message"
-                  className="min-h-14"
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' && !event.shiftKey) {
-                      event.preventDefault();
-                      formRef.current?.requestSubmit();
-                    }
-                  }}
-                />
-                <InputGroupAddon align="block-end" className="pt-1">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      render={
-                        <InputGroupButton
-                          aria-label="Add context"
-                          type="button"
-                          size="icon-sm"
-                          variant="outline"
-                        >
-                          <PlusIcon />
-                        </InputGroupButton>
-                      }
-                    />
-                    <DropdownMenuContent
-                      align="start"
-                      side="top"
-                      className="w-44"
-                    >
-                      <DropdownMenuItem>
-                        <PaperclipIcon />
-                        Add Photos & Files
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        <TelescopeIcon />
-                        Deep Research
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <GlobeIcon />
-                        Web Search
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    <SquareIcon className="size-3 fill-current" />
+                  </Button>
+                ) : (
                   <InputGroupButton
                     type="submit"
                     variant="default"
                     size="icon-sm"
-                    disabled={!canSend}
-                    className="ml-auto"
+                    disabled={!input.trim()}
+                    className="size-7 rounded-lg"
                   >
-                    <ArrowUpIcon />
-                    <span className="sr-only">Send</span>
+                    <ArrowUpIcon className="size-3.5" />
+                    <span className="sr-only">Send message</span>
                   </InputGroupButton>
-                </InputGroupAddon>
-              </InputGroup>
-            </form>
-          </div>
-        </div>
+                )}
+              </div>
+            </InputGroupAddon>
+          </InputGroup>
+        </form>
       </div>
-    </MessageScrollerProvider>
-  );
-}
-
-function StepRow({ part, streaming }: { part: ChatPart; streaming: boolean }) {
-  if (part.type === 'reasoning') {
-    return (
-      <ReasoningRow text={part.text} running={part.state === 'streaming'} />
-    );
-  }
-
-  if (part.type === 'tool-runCommand') {
-    return <ToolRow part={part} streaming={streaming} />;
-  }
-
-  return null;
-}
-
-function ReasoningRow({ text, running }: { text: string; running: boolean }) {
-  const [open, setOpen] = React.useState<boolean>();
-
-  return (
-    <TraceCollapsible open={open ?? running} onOpenChange={setOpen}>
-      <TraceCollapsibleTrigger>
-        <TraceLine status={running ? 'running' : undefined}>
-          <TraceIcon>
-            {running ? (
-              <LoaderCircleIcon className="animate-spin" />
-            ) : (
-              <CircleCheckIcon />
-            )}
-          </TraceIcon>
-          <TraceTitle>{running ? 'Thinking' : 'Thought'}</TraceTitle>
-        </TraceLine>
-      </TraceCollapsibleTrigger>
-      <TraceCollapsibleContent className="whitespace-pre-wrap">
-        {text}
-      </TraceCollapsibleContent>
-    </TraceCollapsible>
-  );
-}
-
-function ToolRow({ part, streaming }: { part: ToolPart; streaming: boolean }) {
-  const command = part.input?.command;
-
-  if (part.state === 'output-available' || part.state === 'output-error') {
-    const failed = part.state === 'output-error';
-
-    return (
-      <TraceCollapsible>
-        <TraceCollapsibleTrigger>
-          <TraceLine status={failed ? 'error' : undefined}>
-            <TraceIcon>
-              <TerminalIcon />
-            </TraceIcon>
-            <TraceTitle>
-              {failed ? 'Failed to run' : 'Ran'} {command}
-            </TraceTitle>
-          </TraceLine>
-        </TraceCollapsibleTrigger>
-        <TraceCollapsibleContent>
-          <CodeBlock size="sm">
-            <CodeBlockContent wrap className="max-h-64">
-              {failed ? part.errorText : part.output.stdout}
-            </CodeBlockContent>
-          </CodeBlock>
-        </TraceCollapsibleContent>
-      </TraceCollapsible>
-    );
-  }
-
-  return (
-    <TraceLine status={streaming ? 'running' : 'error'}>
-      <TraceIcon>
-        <TerminalIcon />
-      </TraceIcon>
-      <TraceTitle>
-        {streaming ? 'Running' : 'Failed to run'} {command}
-      </TraceTitle>
-    </TraceLine>
+    </div>
   );
 }
