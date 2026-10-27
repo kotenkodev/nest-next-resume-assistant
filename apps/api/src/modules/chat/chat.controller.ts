@@ -20,16 +20,16 @@ import { SendMessageDto } from './dto/send-message.dto';
 import { Conversation } from './entities/conversation.entity';
 import { ChatMessage } from './entities/chat-message.entity';
 
-@Controller('chat')
+@Controller('chat/conversations')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
-  @Get('conversations')
+  @Get()
   getConversations(@Session() session: UserSession): Promise<Conversation[]> {
     return this.chatService.getConversations(session.user.id);
   }
 
-  @Post('conversations')
+  @Post()
   createConversation(
     @Session() session: UserSession,
     @Body() dto: CreateConversationDto,
@@ -37,7 +37,7 @@ export class ChatController {
     return this.chatService.createConversation(session.user.id, dto);
   }
 
-  @Get('conversations/:id')
+  @Get(':id')
   getConversation(
     @Session() session: UserSession,
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
@@ -45,7 +45,7 @@ export class ChatController {
     return this.chatService.getConversation(session.user.id, id);
   }
 
-  @Patch('conversations/:id')
+  @Patch(':id')
   updateConversation(
     @Session() session: UserSession,
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
@@ -54,7 +54,7 @@ export class ChatController {
     return this.chatService.updateConversation(session.user.id, id, dto);
   }
 
-  @Delete('conversations/:id')
+  @Delete(':id')
   @HttpCode(204)
   deleteConversation(
     @Session() session: UserSession,
@@ -63,7 +63,7 @@ export class ChatController {
     return this.chatService.deleteConversation(session.user.id, id);
   }
 
-  @Post('conversations/:id/messages')
+  @Post(':id/messages')
   sendMessage(
     @Session() session: UserSession,
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
@@ -72,7 +72,7 @@ export class ChatController {
     return this.chatService.sendMessage(session.user.id, id, dto);
   }
 
-  @Post('conversations/:id/messages/stream')
+  @Post(':id/messages/stream')
   async sendMessageStream(
     @Session() session: UserSession,
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
