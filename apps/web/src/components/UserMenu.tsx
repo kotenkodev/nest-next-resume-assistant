@@ -83,12 +83,12 @@ export function UserMenu() {
         </Avatar>
 
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-foreground truncate">
+          <span className="block text-xs font-semibold text-foreground truncate">
             {user.name || 'User'}
-          </p>
-          <p className="text-[11px] text-muted-foreground truncate">
+          </span>
+          <span className="block text-[11px] text-muted-foreground truncate">
             {user.email || ''}
-          </p>
+          </span>
         </div>
 
         <ChevronsUpDownIcon className="size-3.5 text-muted-foreground shrink-0 group-hover:text-foreground transition-colors" />
