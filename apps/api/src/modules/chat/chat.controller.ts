@@ -6,6 +6,7 @@ import {
   HttpCode,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Res,
   Session,
@@ -14,6 +15,7 @@ import type { ServerResponse } from 'node:http';
 import { UserSession } from '@thallesp/nestjs-better-auth';
 import { ChatService } from './chat.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
+import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 import { Conversation } from './entities/conversation.entity';
 import { ChatMessage } from './entities/chat-message.entity';
@@ -41,6 +43,15 @@ export class ChatController {
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ): Promise<Conversation> {
     return this.chatService.getConversation(session.user.id, id);
+  }
+
+  @Patch('conversations/:id')
+  updateConversation(
+    @Session() session: UserSession,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() dto: UpdateConversationDto,
+  ): Promise<Conversation> {
+    return this.chatService.updateConversation(session.user.id, id, dto);
   }
 
   @Delete('conversations/:id')

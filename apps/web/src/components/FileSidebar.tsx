@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useParams } from 'next/navigation';
-import { jobsApi, resumesApi, type ConversationDetail } from '@/api';
+import { chatApi, jobsApi, resumesApi, type ConversationDetail } from '@/api';
 import { useWorkspaceStore } from '@/store/workspace';
 import { Checkbox } from './ui/checkbox';
 import { Skeleton } from './ui/skeleton';
@@ -113,6 +113,31 @@ export function FileSidebar({
       return isProcessing ? 2000 : false;
     },
   });
+
+  const handleToggleJob = (jobId: string) => {
+    const isCurrentlySelected = selectedJobIds.includes(jobId);
+    const nextJobIds = isCurrentlySelected
+      ? selectedJobIds.filter((id) => id !== jobId)
+      : [...selectedJobIds, jobId];
+
+    setSelectedJobIds(nextJobIds);
+
+    if (currentConversationId) {
+      chatApi
+        .updateConversation(currentConversationId, {
+          jobPostingIds: nextJobIds,
+        })
+        .then(() => {
+          queryClient.invalidateQueries({
+            queryKey: ['conversation', currentConversationId],
+          });
+          queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        })
+        .catch(() => {
+          toast.error('Failed to sync job with conversation');
+        });
+    }
+  };
 
   // 3. Delete Resume Mutation
   const { mutate: deleteResume } = useMutation({
@@ -378,7 +403,7 @@ export function FileSidebar({
                       key={job.id}
                       onClick={() => {
                         if (!isReady) return;
-                        toggleJobId(job.id);
+                        handleToggleJob(job.id);
                       }}
                       className={cn(
                         'group relative flex flex-col gap-2 p-3 rounded-xl border transition-all text-left shadow-2xs',
@@ -397,7 +422,7 @@ export function FileSidebar({
                             disabled={!isReady}
                             onCheckedChange={() => {
                               if (!isReady) return;
-                              toggleJobId(job.id);
+                              handleToggleJob(job.id);
                             }}
                           />
                         </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { chatApi, jobsApi, resumesApi } from '@/api';
 import { useWorkspaceStore } from '@/store/workspace';
 import { Button } from './ui/button';
@@ -34,10 +34,11 @@ export default function JobMatchesView({
   conversationId,
   resumeId: propResumeId,
 }: JobMatchesViewProps) {
+  const queryClient = useQueryClient();
   const {
     selectedResumeId: storeResumeId,
     selectedJobIds,
-    toggleJobId,
+    setSelectedJobIds,
     setSelectedResumeId,
   } = useWorkspaceStore();
 
@@ -46,12 +47,62 @@ export default function JobMatchesView({
     new Set(),
   );
 
-  // 1. Derive active resume
+  // 1. Derive active conversation
   const { data: conversation } = useQuery({
     queryKey: ['conversation', conversationId],
     queryFn: () => chatApi.getConversation(conversationId!),
     enabled: !!conversationId && !propResumeId,
   });
+
+  const effectiveJobIds = React.useMemo(() => {
+    return conversation?.jobPostingIds ?? selectedJobIds;
+  }, [conversation?.jobPostingIds, selectedJobIds]);
+
+  // Mutation to persist job postings to conversation in DB
+  const { mutate: updateConvoJobs } = useMutation({
+    mutationFn: (newJobIds: string[]) =>
+      chatApi.updateConversation(conversationId!, { jobPostingIds: newJobIds }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(
+        ['conversation', conversationId],
+        (prev: any) =>
+          prev
+            ? {
+                ...prev,
+                jobPostingIds: updated.jobPostingIds,
+              }
+            : prev,
+      );
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({
+        queryKey: ['conversation', conversationId],
+      });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to update conversation jobs');
+    },
+  });
+
+  const handleToggleFitJob = (jobId: string, title: string) => {
+    const isCurrentlySelected = effectiveJobIds.includes(jobId);
+    const nextJobIds = isCurrentlySelected
+      ? effectiveJobIds.filter((id) => id !== jobId)
+      : [...effectiveJobIds, jobId];
+
+    // 1. Update client Zustand store
+    setSelectedJobIds(nextJobIds);
+
+    // 2. Persist to active conversation in PostgreSQL if inside a conversation
+    if (conversationId) {
+      updateConvoJobs(nextJobIds);
+    }
+
+    if (!isCurrentlySelected) {
+      toast.success(`Selected "${title}" for Fit Analysis`);
+    } else {
+      toast.info(`Removed "${title}" from Fit Analysis`);
+    }
+  };
 
   const activeResumeId =
     propResumeId || conversation?.resumeId || storeResumeId;
@@ -309,7 +360,7 @@ export default function JobMatchesView({
       {!isMatchesLoading && matches && matches.length > 0 && (
         <div className="space-y-4">
           {matches.map(({ job, similarityScore }, index) => {
-            const isSelected = selectedJobIds.includes(job.id);
+            const isSelected = effectiveJobIds.includes(job.id);
             const isExpanded = expandedJobIds.has(job.id);
             const percentage = Math.max(
               0,
@@ -415,14 +466,7 @@ export default function JobMatchesView({
                       <Button
                         size="sm"
                         variant={isSelected ? 'default' : 'outline'}
-                        onClick={() => {
-                          toggleJobId(job.id);
-                          if (!isSelected) {
-                            toast.success(
-                              `Selected "${title}" for Fit Analysis`,
-                            );
-                          }
-                        }}
+                        onClick={() => handleToggleFitJob(job.id, title)}
                         className="gap-1.5 h-8 text-xs font-semibold"
                       >
                         {isSelected ? (

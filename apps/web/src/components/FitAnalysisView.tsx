@@ -40,16 +40,22 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
   });
 
   const resumeId = conversation?.resumeId || storeResumeId;
-  const jobPostingIds = conversation?.jobPostingIds || storeJobIds;
+  const rawJobPostingIds = conversation?.jobPostingIds ?? storeJobIds;
+  const jobPostingIds = React.useMemo(
+    () => rawJobPostingIds || [],
+    [rawJobPostingIds],
+  );
 
   // Active job selector (if multiple jobs are in context)
-  const [activeJobId, setActiveJobId] = React.useState<string | null>(null);
+  const [selectedJobId, setSelectedJobId] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (jobPostingIds && jobPostingIds.length > 0 && !activeJobId) {
-      setActiveJobId(jobPostingIds[0] || null);
+  // Derive active job cleanly without any useEffect or flash
+  const activeJobId = React.useMemo(() => {
+    if (selectedJobId && jobPostingIds.includes(selectedJobId)) {
+      return selectedJobId;
     }
-  }, [jobPostingIds, activeJobId]);
+    return jobPostingIds[0] || null;
+  }, [selectedJobId, jobPostingIds]);
 
   // 2. Fetch the Resume and Active Job details for header info
   const { data: activeJob } = useQuery({
@@ -123,7 +129,7 @@ export default function FitAnalysisView({ conversationId }: FitAnalysisViewProps
             return (
               <button
                 key={jId}
-                onClick={() => setActiveJobId(jId)}
+                onClick={() => setSelectedJobId(jId)}
                 className={cn(
                   'px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 cursor-pointer',
                   isCurrent

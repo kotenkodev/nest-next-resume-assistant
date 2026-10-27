@@ -10,6 +10,7 @@ import { ChatMessage } from './entities/chat-message.entity';
 import { Resume } from '../resume/entities/resume.entity';
 import { JobPosting } from '../job-posting/entities/job-posting.entity';
 import { CreateConversationDto } from './dto/create-conversation.dto';
+import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { AiService } from '../ai/ai.service';
 import { SendMessageDto } from './dto/send-message.dto';
 
@@ -62,6 +63,37 @@ export class ChatService {
       id: conversationId,
       userId,
     });
+  }
+
+  async updateConversation(
+    userId: string,
+    conversationId: string,
+    dto: UpdateConversationDto,
+  ): Promise<Conversation> {
+    const conversation = await this.conversationRepository.findOne({
+      where: { id: conversationId, userId },
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    if (dto.jobPostingIds !== undefined) {
+      if (dto.jobPostingIds.length > 0) {
+        const jobs = await this.jobPostingRepository.find({
+          where: { userId, id: In(dto.jobPostingIds) },
+        });
+        conversation.jobPostingIds = jobs.map((j) => j.id);
+      } else {
+        conversation.jobPostingIds = [];
+      }
+    }
+
+    if (dto.title !== undefined) {
+      conversation.title = dto.title;
+    }
+
+    return this.conversationRepository.save(conversation);
   }
 
   async createConversation(
