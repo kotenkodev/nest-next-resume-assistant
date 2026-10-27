@@ -20,7 +20,7 @@ import { SendMessageDto } from './dto/send-message.dto';
 import { Conversation } from './entities/conversation.entity';
 import { ChatMessage } from './entities/chat-message.entity';
 
-@Controller('chat/conversations')
+@Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 

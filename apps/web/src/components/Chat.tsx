@@ -1,12 +1,16 @@
 'use client';
 
-import * as React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { chatApi, jobsApi, resumesApi } from '@/api';
 import { Markdown } from '@/components/markdown';
 import { Bubble, BubbleContent } from '@/components/ui/bubble';
 import { Button } from '@/components/ui/button';
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupTextarea } from '@/components/ui/input-group';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupTextarea,
+} from '@/components/ui/input-group';
 import { Message, MessageContent } from '@/components/ui/message';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -21,7 +25,7 @@ import {
   Building2Icon,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface ChatProps {
   conversationId?: string;
@@ -44,12 +48,12 @@ const PROMPT_SUGGESTIONS = [
 
 export function Chat({ conversationId }: ChatProps) {
   const queryClient = useQueryClient();
-  const [messages, setMessages] = React.useState<LocalMessage[]>([]);
-  const [input, setInput] = React.useState('');
-  const [isGenerating, setIsGenerating] = React.useState(false);
-  const abortControllerRef = React.useRef<AbortController | null>(null);
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const [messages, setMessages] = useState<LocalMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 1. Fetch conversation details & history
   const {
@@ -76,14 +80,14 @@ export function Chat({ conversationId }: ChatProps) {
     enabled: !!conversation?.jobPostingIds?.length,
   });
 
-  const targetJobs = React.useMemo(() => {
+  const targetJobs = useMemo(() => {
     if (!allJobs || !conversation?.jobPostingIds) return [];
     const idSet = new Set(conversation.jobPostingIds);
     return allJobs.filter((j) => idSet.has(j.id));
   }, [allJobs, conversation?.jobPostingIds]);
 
   // Sync loaded messages into local state when conversation updates
-  React.useEffect(() => {
+  useEffect(() => {
     if (conversation?.messages && !isGenerating) {
       setMessages(conversation.messages);
     }
@@ -94,7 +98,7 @@ export function Chat({ conversationId }: ChatProps) {
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     scrollToBottom(isGenerating ? 'auto' : 'smooth');
   }, [messages, isGenerating]);
 
@@ -206,7 +210,8 @@ export function Chat({ conversationId }: ChatProps) {
           No Conversation Selected
         </h3>
         <p className="mt-1 text-xs max-w-sm">
-          Select or create a conversation from the left sidebar to start chatting with the career assistant.
+          Select or create a conversation from the left sidebar to start
+          chatting with the career assistant.
         </p>
       </div>
     );
@@ -232,7 +237,8 @@ export function Chat({ conversationId }: ChatProps) {
               <span>•</span>
               <span className="flex items-center gap-1">
                 <BriefcaseIcon className="size-3" />
-                {targetJobs.length} {targetJobs.length === 1 ? 'Job' : 'Jobs'} context
+                {targetJobs.length} {targetJobs.length === 1 ? 'Job' : 'Jobs'}{' '}
+                context
               </span>
             </div>
           </div>
@@ -268,8 +274,13 @@ export function Chat({ conversationId }: ChatProps) {
               Career Intelligence Assistant
             </h3>
             <p className="mt-1 text-xs text-muted-foreground max-w-sm leading-relaxed">
-              Evaluating candidate <strong className="text-foreground">{candidateName}</strong> against{' '}
-              <strong className="text-foreground">{targetJobs.length} selected job posting(s)</strong>.
+              Evaluating candidate{' '}
+              <strong className="text-foreground">{candidateName}</strong>{' '}
+              against{' '}
+              <strong className="text-foreground">
+                {targetJobs.length} selected job posting(s)
+              </strong>
+              .
             </p>
 
             {targetJobs.length > 0 && (
@@ -311,7 +322,11 @@ export function Chat({ conversationId }: ChatProps) {
                 return (
                   <Message key={message.id} align="end">
                     <MessageContent className="items-end">
-                      <Bubble align="end" variant="default" className="rounded-2xl px-4 py-2.5">
+                      <Bubble
+                        align="end"
+                        variant="default"
+                        className="rounded-2xl px-4 py-2.5"
+                      >
                         <BubbleContent className="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed">
                           {message.content}
                         </BubbleContent>
@@ -341,9 +356,9 @@ export function Chat({ conversationId }: ChatProps) {
                       <Bubble
                         align="start"
                         variant="ghost"
-                        className="p-0 max-w-full text-foreground"
+                        className="p-0 w-full max-w-full text-foreground"
                       >
-                        <BubbleContent className="text-xs sm:text-sm">
+                        <BubbleContent className="text-xs sm:text-sm w-full p-0 text-foreground">
                           {message.content ? (
                             <Markdown>{message.content}</Markdown>
                           ) : (
@@ -396,10 +411,20 @@ export function Chat({ conversationId }: ChatProps) {
               }}
             />
 
-            <InputGroupAddon align="block-end" className="px-2 pb-2 pt-0 justify-between">
+            <InputGroupAddon
+              align="block-end"
+              className="px-2 pb-2 pt-0 justify-between"
+            >
               <span className="text-[10px] text-muted-foreground hidden sm:inline">
-                Press <kbd className="px-1 py-0.5 rounded bg-muted font-mono">Enter</kbd> to send,{' '}
-                <kbd className="px-1 py-0.5 rounded bg-muted font-mono">Shift+Enter</kbd> for newline
+                Press{' '}
+                <kbd className="px-1 py-0.5 rounded bg-muted font-mono">
+                  Enter
+                </kbd>{' '}
+                to send,{' '}
+                <kbd className="px-1 py-0.5 rounded bg-muted font-mono">
+                  Shift+Enter
+                </kbd>{' '}
+                for newline
               </span>
 
               <div className="ml-auto flex items-center gap-1.5">

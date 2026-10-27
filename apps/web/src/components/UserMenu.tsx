@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from '@/lib/auth-client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { LogOutIcon, ChevronsUpDownIcon, LogInIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 function getInitials(name?: string | null): string {
   if (!name) return 'U';
@@ -25,11 +25,11 @@ function getInitials(name?: string | null): string {
 }
 
 export function UserMenu() {
-  const [mounted, setMounted] = React.useState(false);
+  const [mounted, setMounted] = useState(false);
   const { data: session, isPending } = useSession();
   const router = useRouter();
 
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true);
   }, []);
 

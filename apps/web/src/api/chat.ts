@@ -10,12 +10,11 @@ export interface ConversationDetail extends ConversationDto {
 }
 
 export const chatApi = {
-  listConversations: () =>
-    request<ConversationDto[]>(`/api/chat/conversations`),
+  listConversations: () => request<ConversationDto[]>(`/api/chat`),
   getConversation: (conversationId: string) =>
-    request<ConversationDetail>(`/api/chat/conversations/${conversationId}`),
+    request<ConversationDetail>(`/api/chat/${conversationId}`),
   createConversation: (payload: CreateConversationPayload) =>
-    request<ConversationDto>(`/api/chat/conversations`, {
+    request<ConversationDto>(`/api/chat`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
@@ -23,12 +22,12 @@ export const chatApi = {
     conversationId: string,
     payload: { jobPostingIds?: string[]; title?: string },
   ) =>
-    request<ConversationDto>(`/api/chat/conversations/${conversationId}`, {
+    request<ConversationDto>(`/api/chat/${conversationId}`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
   deleteConversation: (conversationId: string) =>
-    request<void>(`/api/chat/conversations/${conversationId}`, {
+    request<void>(`/api/chat/${conversationId}`, {
       method: 'DELETE',
     }),
   async streamMessage(
@@ -43,7 +42,7 @@ export const chatApi = {
   ): Promise<void> {
     try {
       const response = await fetch(
-        `${API_BASE}/api/chat/conversations/${conversationId}/messages/stream`,
+        `${API_BASE}/api/chat/${conversationId}/messages/stream`,
         {
           method: 'POST',
           credentials: 'include',

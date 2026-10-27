@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signUp, useSession } from '@/lib/auth-client';
@@ -17,19 +16,20 @@ import {
   UserPlusIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useEffect, useState } from 'react';
 
 export default function SignUpPage() {
   const router = useRouter();
   const { data: session } = useSession();
 
-  const [name, setName] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (session?.user) {
       router.push('/');
     }
@@ -85,7 +85,6 @@ export default function SignUpPage() {
 
   return (
     <div className="w-full rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-sm">
-      
       <div className="text-center space-y-1.5 mb-6">
         <div className="mx-auto mb-3 flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <UserPlusIcon className="size-5" />
@@ -94,11 +93,11 @@ export default function SignUpPage() {
           Create an account
         </h1>
         <p className="text-xs text-muted-foreground">
-          Start analyzing resume fit, uncovering skill gaps, and practicing interviews
+          Start analyzing resume fit, uncovering skill gaps, and practicing
+          interviews
         </p>
       </div>
 
-      
       {error && (
         <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
           <AlertCircleIcon className="size-4 shrink-0 mt-0.5" />
@@ -106,9 +105,7 @@ export default function SignUpPage() {
         </div>
       )}
 
-      
       <form onSubmit={handleSubmit} className="space-y-4">
-        
         <div className="space-y-1.5">
           <label
             htmlFor="name"
@@ -130,7 +127,6 @@ export default function SignUpPage() {
           />
         </div>
 
-        
         <div className="space-y-1.5">
           <label
             htmlFor="email"
@@ -152,7 +148,6 @@ export default function SignUpPage() {
           />
         </div>
 
-        
         <div className="space-y-1.5">
           <label
             htmlFor="password"
@@ -193,7 +188,6 @@ export default function SignUpPage() {
           </p>
         </div>
 
-        
         <Button
           type="submit"
           disabled={loading}
@@ -210,7 +204,6 @@ export default function SignUpPage() {
         </Button>
       </form>
 
-      
       <div className="mt-6 text-center text-xs text-muted-foreground pt-5 border-t border-border">
         Already have an account?{' '}
         <Link
