@@ -35,6 +35,7 @@ export class AiService {
 
     const completion = await this.client.chat.completions.create({
       model: this.model,
+      max_completion_tokens: 4096,
       response_format: {
         type: 'json_schema',
         json_schema: {
@@ -103,6 +104,7 @@ export class AiService {
 
     const completion = await this.client.chat.completions.create({
       model: this.model,
+      max_completion_tokens: 4096,
       response_format: {
         type: 'json_schema',
         json_schema: {
@@ -201,6 +203,7 @@ export class AiService {
   ): Promise<FitAnalysisOutput> {
     const completion = await this.client.chat.completions.create({
       model: this.model,
+      max_completion_tokens: 4096,
       response_format: {
         type: 'json_schema',
         json_schema: {
@@ -228,10 +231,10 @@ export class AiService {
               - score: Experience alignment score (0-100).
               - strengths: Specific alignment strengths with evidence.
               - concerns: Relevant gaps or lack of depth.
-              - mapping: Map each primary job requirement to candidate experience with HIGH, MEDIUM, or LOW fit.
+              - mapping: Map the top 6 to 10 primary job requirements to candidate experience with HIGH, MEDIUM, or LOW fit.
             - interviewPrep:
-              - technicalQuestions: Targeted questions probing candidate gaps, with talking points.
-              - behavioralQuestions: Behavioral questions tailored to the role, with STAR guidance.
+              - technicalQuestions: Provide 3 targeted technical questions probing candidate gaps, with concise talking points.
+              - behavioralQuestions: Provide 2 concise behavioral questions tailored to the role, with actionable STAR guidance.
             - Return JSON directly without Markdown formatting.
           `.trim(),
         },
