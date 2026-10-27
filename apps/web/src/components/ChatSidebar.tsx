@@ -118,6 +118,10 @@ export function ChatSidebar({
     <Sidebar className="border-r border-sidebar-border" {...props}>
       <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
         <Link
+          onClick={() => {
+            setSelectedResumeId(null);
+            setSelectedJobIds([]);
+          }}
           href="/"
           className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
         >
@@ -235,14 +239,8 @@ export function ChatSidebar({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-3">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <div className="w-full rounded-md bg-sidebar-accent/50 p-2 text-xs">
-              <UserMenu />
-            </div>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarFooter className="border-t border-sidebar-border p-2">
+        <UserMenu />
       </SidebarFooter>
     </Sidebar>
   );
